@@ -1,52 +1,44 @@
 <div align="center">
   <br />
-  <p>
-    <a href="https://discord.js.org"><img src="https://discord.js.org/static/logo.svg" width="546" alt="discord.js" /></a>
-  </p>
-  <br />
-  <p>
-    <a href="https://discord.gg/djs"><img src="https://img.shields.io/discord/222078108977594368?color=7289da&logo=discord&logoColor=white" alt="Discord server" /></a>
-    <a href="https://www.npmjs.com/package/discord.js"><img src="https://img.shields.io/npm/v/discord.js.svg?maxAge=3600" alt="NPM version" /></a>
-    <a href="https://www.npmjs.com/package/discord.js"><img src="https://img.shields.io/npm/dt/discord.js.svg?maxAge=3600" alt="NPM downloads" /></a>
-    <a href="https://github.com/discordjs/discord.js/actions"><img src="https://github.com/discordjs/discord.js/workflows/Testing/badge.svg" alt="Build status" /></a>
-    <a href="https://david-dm.org/discordjs/discord.js"><img src="https://img.shields.io/david/discordjs/discord.js.svg?maxAge=3600" alt="Dependencies" /></a>
-    <a href="https://www.patreon.com/discordjs"><img src="https://img.shields.io/badge/donate-patreon-F96854.svg" alt="Patreon" /></a>
-  </p>
-  <p>
-    <a href="https://nodei.co/npm/discord.js/"><img src="https://nodei.co/npm/discord.js.png?downloads=true&stars=true" alt="npm installnfo" /></a>
-  </p>
+    <img width="100" src="https://raw.githubusercontent.com/fosscord/fosscord/master/assets/logo_big_transparent.png" />
+</p>
+<h1 align="center">Fosscord.JS</h1>
+
+<p>
+   <a href="https://discord.gg/ZrnGQP6p3d">
+    <img src="https://img.shields.io/discord/806142446094385153?color=7489d5&logo=discord&logoColor=ffffff" />
+  </a>
+  <img src="https://img.shields.io/static/v1?label=Status&message=Development&color=blue">
+  <a title="Crowdin" target="_blank" href="https://translate.fosscord.com/"><img src="https://badges.crowdin.net/fosscord/localized.svg"></a>
+  <a href="https://opencollective.com/fosscord">
+    <img src="https://opencollective.com/fosscord/tiers/badge.svg">
+  </a>
 </div>
-
-## Table of contents
-
-- [About](#about)
-- [Installation](#installation)
-  - [Audio engines](#audio-engines)
-  - [Optional packages](#optional-packages)
-- [Example Usage](#example-usage)
-- [Links](#links)
-  - [Extensions](#extensions)
-- [Contributing](#contributing)
-- [Help](#help)
 
 ## About
 
-discord.js is a powerful [Node.js](https://nodejs.org) module that allows you to easily interact with the
-[Discord API](https://discord.com/developers/docs/intro).
+fosscord.js is a fork of [discord.js](https://discord.js.org/) that allows you to easily interact with the
+[Fosscord API](https://docs.fosscord.com/) and is backwards compatible to discord.js.
+
+### Discord.js
 
 - Object-oriented
 - Predictable abstractions
 - Performant
-- 100% coverage of the Discord API
+- 100% coverage of the Fosscord API
+
+### Additions
+- User only features (video/screenshare)
+- Voice support for browser
 
 ## Installation
 
 **Node.js 14.0.0 or newer is required.**  
 Ignore any warnings about unmet peer dependencies, as they're all optional.
 
-Without voice support: `npm install discord.js`  
-With voice support ([@discordjs/opus](https://www.npmjs.com/package/@discordjs/opus)): `npm install discord.js @discordjs/opus`  
-With voice support ([opusscript](https://www.npmjs.com/package/opusscript)): `npm install discord.js opusscript`
+Without voice support: `npm install fosscord.js`  
+With voice support ([@discordjs/opus](https://www.npmjs.com/package/@discordjs/opus)): `npm install fosscord.js @discordjs/opus`  
+With voice support ([opusscript](https://www.npmjs.com/package/opusscript)): `npm install fosscord.js opusscript`
 
 ### Audio engines
 
@@ -85,15 +77,13 @@ client.login('token');
 
 ## Links
 
-- [Website](https://discord.js.org/) ([source](https://github.com/discordjs/website))
-- [Documentation](https://discord.js.org/#/docs/main/master/general/welcome)
-- [Guide](https://discordjs.guide/) ([source](https://github.com/discordjs/guide)) - this is still for stable  
-  See also the [Update Guide](https://discordjs.guide/additional-info/changes-in-v12.html), including updated and removed items in the library.
+- [Website](https://fosscord.com/) ([source](https://github.com/fosscord/fosscord-landingpage))
+- [Documentation](https://docs.fosscord.com) ([source](https://github.com/fosscord/fosscord-docs))
+- [Fosscord Discord server](https://discord.gg/ZrnGQP6p3d)
+- [Discord.js Guide](https://discordjs.guide/) ([source](https://github.com/discordjs/guide)) - this is still for stable  
 - [Discord.js Discord server](https://discord.gg/djs)
-- [Discord API Discord server](https://discord.gg/discord-api)
-- [GitHub](https://github.com/discordjs/discord.js)
-- [NPM](https://www.npmjs.com/package/discord.js)
-- [Related libraries](https://discordapi.com/unofficial/libs.html)
+- [GitHub](https://github.com/fosscord/fosscord.js)
+- [NPM](https://www.npmjs.com/package/fosscord.js)
 
 ### Extensions
 
@@ -108,4 +98,4 @@ See [the contribution guide](https://github.com/discordjs/discord.js/blob/master
 ## Help
 
 If you don't understand something in the documentation, you are experiencing problems, or you just need a gentle
-nudge in the right direction, please don't hesitate to join our official [Discord.js Server](https://discord.gg/djs).
+nudge in the right direction, please don't hesitate to join our official [fossccord.js Server](https://discord.gg/ZrnGQP6p3d).
