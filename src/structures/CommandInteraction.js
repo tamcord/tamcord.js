@@ -146,7 +146,7 @@ class CommandInteraction extends Interaction {
   /**
    * Edits the initial reply to this interaction.
    * @see Webhook#editMessage
-   * @param {string|APIMessage|MessageEmbed|MessageEmbed[]} content The new content for the message
+   * @param {string|APIMessage|MessageAdditions} content The new content for the message
    * @param {WebhookEditMessageOptions} [options] The options to provide
    * @returns {Promise<Message|Object>}
    * @example
@@ -186,6 +186,24 @@ class CommandInteraction extends Interaction {
    * @property {GuildChannel|Object} [channel] The resolved channel
    * @property {Role|Object} [role] The resolved role
    */
+
+  /**
+   * Send a follow-up message to this interaction.
+   * @param {string|APIMessage|MessageAdditions} content The content for the reply
+   * @param {InteractionReplyOptions} [options] Additional options for the reply
+   * @returns {Promise<Message|Object>}
+   */
+  async followUp(content, options) {
+    const apiMessage = content instanceof APIMessage ? content : APIMessage.create(this, content, options);
+    const { data, files } = await apiMessage.resolveData().resolveFiles();
+
+    const raw = await this.client.api.webhooks(this.applicationID, this.token).post({
+      data,
+      files,
+    });
+
+    return this.channel?.messages.add(raw) ?? raw;
+  }
 
   /**
    * Transforms an option received from the API.
