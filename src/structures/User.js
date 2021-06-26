@@ -16,7 +16,7 @@ let Structures;
 class User extends Base {
   /**
    * @param {Client} client The instantiating client
-   * @param {Object} data The data for the user
+   * @param {APIUser} data The data for the user
    */
   constructor(client, data) {
     super(client);
@@ -29,6 +29,18 @@ class User extends Base {
 
     this.system = null;
     this.flags = null;
+
+    /**
+     * The ID of the last message sent by the user, if one was sent
+     * @type {?Snowflake}
+     */
+    this.lastMessageID = null;
+
+    /**
+     * The ID of the channel for the last message sent by the user, if one was sent
+     * @type {?Snowflake}
+     */
+    this.lastMessageChannelID = null;
 
     this._patch(data);
   }
@@ -87,18 +99,6 @@ class User extends Base {
        */
       this.flags = new UserFlags(data.public_flags);
     }
-
-    /**
-     * The ID of the last message sent by the user, if one was sent
-     * @type {?Snowflake}
-     */
-    this.lastMessageID = null;
-
-    /**
-     * The ID of the channel for the last message sent by the user, if one was sent
-     * @type {?Snowflake}
-     */
-    this.lastMessageChannelID = null;
   }
 
   /**
@@ -333,3 +333,8 @@ class User extends Base {
 TextBasedChannel.applyToClass(User);
 
 module.exports = User;
+
+/**
+ * @external APIUser
+ * @see {@link https://discord.com/developers/docs/resources/user#user-object}
+ */

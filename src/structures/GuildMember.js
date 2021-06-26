@@ -15,7 +15,7 @@ let Structures;
 class GuildMember extends Base {
   /**
    * @param {Client} client The instantiating client
-   * @param {Object} data The data for the guild member
+   * @param {APIGuildMember} data The data for the guild member
    * @param {Guild} guild The guild the member is part of
    */
   constructor(client, data, guild) {
@@ -323,9 +323,7 @@ class GuildMember extends Base {
 
   /**
    * Bans this guild member.
-   * @param {Object} [options] Options for the ban
-   * @param {number} [options.days=0] Number of days of messages to delete, must be between 0 and 7, inclusive
-   * @param {string} [options.reason] Reason for banning
+   * @param {BanOptions} [options] Options for the ban
    * @returns {Promise<GuildMember>}
    * @example
    * // ban a guild member
@@ -385,7 +383,6 @@ class GuildMember extends Base {
       guild: 'guildID',
       user: 'userID',
       displayName: true,
-      speaking: false,
       lastMessage: false,
       lastMessageID: false,
       roles: true,
@@ -400,3 +397,8 @@ class GuildMember extends Base {
 TextBasedChannel.applyToClass(GuildMember);
 
 module.exports = GuildMember;
+
+/**
+ * @external APIGuildMember
+ * @see {@link https://discord.com/developers/docs/resources/guild#guild-member-object}
+ */

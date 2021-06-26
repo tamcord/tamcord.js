@@ -8,7 +8,7 @@ const Util = require('../util/Util');
  * Keeps track of mentions in a {@link Message}.
  */
 class MessageMentions {
-  constructor(message, users, roles, everyone, crosspostedChannels) {
+  constructor(message, users, roles, everyone, crosspostedChannels, repliedUser) {
     /**
      * The client the message is from
      * @type {Client}
@@ -125,6 +125,12 @@ class MessageMentions {
     } else {
       this.crosspostedChannels = new Collection();
     }
+
+    /**
+     * The author of the message that this message is a reply to
+     * @type {?User}
+     */
+    this.repliedUser = repliedUser ? this.client.users.add(repliedUser) : null;
   }
 
   /**
@@ -162,13 +168,18 @@ class MessageMentions {
   }
 
   /**
+   * Options used to check for a mention.
+   * @typedef {Object} MessageMentionsHasOptions
+   * @property {boolean} [ignoreDirect=false] Whether to ignore direct mentions to the item
+   * @property {boolean} [ignoreRoles=false] Whether to ignore role mentions to a guild member
+   * @property {boolean} [ignoreEveryone=false] Whether to ignore everyone/here mentions
+   */
+
+  /**
    * Checks if a user, guild member, role, or channel is mentioned.
-   * Takes into account user mentions, role mentions, and @everyone/@here mentions.
-   * @param {UserResolvable|RoleResolvable|ChannelResolvable} data User/Role/Channel to check
-   * @param {Object} [options] Options
-   * @param {boolean} [options.ignoreDirect=false] - Whether to ignore direct mentions to the item
-   * @param {boolean} [options.ignoreRoles=false] - Whether to ignore role mentions to a guild member
-   * @param {boolean} [options.ignoreEveryone=false] - Whether to ignore everyone/here mentions
+   * Takes into account user mentions, role mentions, and `@everyone`/`@here` mentions.
+   * @param {UserResolvable|RoleResolvable|ChannelResolvable} data The User/Role/Channel to check for
+   * @param {MessageMentionsHasOptions} [options] The options for the check
    * @returns {boolean}
    */
   has(data, { ignoreDirect = false, ignoreRoles = false, ignoreEveryone = false } = {}) {

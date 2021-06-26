@@ -34,7 +34,6 @@ fosscord.js is a fork of [discord.js](https://discord.js.org/) that allows you t
 ## Installation
 
 **Node.js 14.0.0 or newer is required.**  
-Ignore any warnings about unmet peer dependencies, as they're all optional.
 
 Without voice support: `npm install fosscord.js`  
 With voice support ([@discordjs/opus](https://www.npmjs.com/package/@discordjs/opus)): `npm install fosscord.js @discordjs/opus`  
@@ -50,11 +49,9 @@ For production bots, using @discordjs/opus should be considered a necessity, esp
 
 - [zlib-sync](https://www.npmjs.com/package/zlib-sync) for WebSocket data compression and inflation (`npm install zlib-sync`)
 - [erlpack](https://github.com/discord/erlpack) for significantly faster WebSocket data (de)serialisation (`npm install discord/erlpack`)
-- One of the following packages can be installed for faster voice packet encryption and decryption:
-  - [sodium](https://www.npmjs.com/package/sodium) (`npm install sodium`)
-  - [libsodium.js](https://www.npmjs.com/package/libsodium-wrappers) (`npm install libsodium-wrappers`)
 - [bufferutil](https://www.npmjs.com/package/bufferutil) for a much faster WebSocket connection (`npm install bufferutil`)
 - [utf-8-validate](https://www.npmjs.com/package/utf-8-validate) in combination with `bufferutil` for much faster WebSocket processing (`npm install utf-8-validate`)
+- [@discordjs/voice](https://github.com/discordjs/voice) for interacting with the Discord Voice API
 
 ## Example usage
 
@@ -66,9 +63,9 @@ client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
-client.on('message', msg => {
-  if (msg.content === 'ping') {
-    msg.channel.send('pong');
+client.on('message', message => {
+  if (message.content === 'ping') {
+    message.channel.send('pong');
   }
 });
 

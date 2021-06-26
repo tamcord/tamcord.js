@@ -118,9 +118,7 @@ class PermissionOverwrites {
   /**
    * Resolves bitfield permissions overwrites from an object.
    * @param {PermissionOverwriteOptions} options The options for the update
-   * @param {Object} initialPermissions The initial permissions
-   * @param {PermissionResolvable} initialPermissions.allow Initial allowed permissions
-   * @param {PermissionResolvable} initialPermissions.deny Initial denied permissions
+   * @param {ResolvedOverwriteOptions} initialPermissions The initial permissions
    * @returns {ResolvedOverwriteOptions}
    */
   static resolveOverwriteOptions(options, { allow, deny } = {}) {
@@ -178,8 +176,8 @@ class PermissionOverwrites {
       return {
         id: overwrite.id,
         type: OverwriteTypes[overwrite.type],
-        allow: Permissions.resolve(overwrite.allow).toString(),
-        deny: Permissions.resolve(overwrite.deny).toString(),
+        allow: Permissions.resolve(overwrite.allow ?? Permissions.defaultBit).toString(),
+        deny: Permissions.resolve(overwrite.deny ?? Permissions.defaultBit).toString(),
       };
     }
 
@@ -190,8 +188,8 @@ class PermissionOverwrites {
     return {
       id: userOrRole.id,
       type,
-      allow: Permissions.resolve(overwrite.allow).toString(),
-      deny: Permissions.resolve(overwrite.deny).toString(),
+      allow: Permissions.resolve(overwrite.allow ?? Permissions.defaultBit).toString(),
+      deny: Permissions.resolve(overwrite.deny ?? Permissions.defaultBit).toString(),
     };
   }
 }

@@ -1,7 +1,6 @@
 'use strict';
 
 const Base = require('./Base');
-const { Error } = require('../errors');
 const { ApplicationCommandOptionTypes } = require('../util/Constants');
 const SnowflakeUtil = require('../util/SnowflakeUtil');
 
@@ -132,23 +131,25 @@ class ApplicationCommand extends Base {
 
   /**
    * Data for setting the permissions of an application command.
-   * @typedef {object} ApplicationCommandPermissionData
+   * @typedef {Object} ApplicationCommandPermissionData
    * @property {Snowflake} id The ID of the role or user
-   * @property {ApplicationCommandPermissionType|number} type Whether this permission if for a role or a user
+   * @property {ApplicationCommandPermissionType|number} type Whether this permission is for a role or a user
    * @property {boolean} permission Whether the role or user has the permission to use this command
    */
 
   /**
    * The object returned when fetching permissions for an application command.
-   * @typedef {object} ApplicationCommandPermissions
+   * @typedef {Object} ApplicationCommandPermissions
    * @property {Snowflake} id The ID of the role or user
-   * @property {ApplicationCommandPermissionType} type Whether this permission if for a role or a user
+   * @property {ApplicationCommandPermissionType} type Whether this permission is for a role or a user
    * @property {boolean} permission Whether the role or user has the permission to use this command
    */
 
   /**
    * Fetches the permissions for this command.
-   * <warn>This is only available for guild application commands.</warn>
+   * <warn>You must specify guildID if this command is handled by a {@link ApplicationCommandManager},
+   * including commands fetched for arbitrary guilds from it, otherwise it is ignored.</warn>
+   * @param {Snowflake} [guildID] ID for the guild to fetch permissions for if this is a global command
    * @returns {Promise<ApplicationCommandPermissions[]>}
    * @example
    * // Fetch permissions for this command
@@ -156,15 +157,16 @@ class ApplicationCommand extends Base {
    *   .then(perms => console.log(`Fetched permissions for ${perms.length} users`))
    *   .catch(console.error);
    */
-  fetchPermissions() {
-    if (!this.guild) throw new Error('GLOBAL_COMMAND_PERMISSIONS');
-    return this.manager.fetchPermissions(this);
+  fetchPermissions(guildID) {
+    return this.manager.fetchPermissions(this, guildID);
   }
 
   /**
    * Sets the permissions for this command.
-   * <warn>This is only available for guild application commands.</warn>
+   * <warn>You must specify guildID if this command is handled by a {@link ApplicationCommandManager},
+   * including commands fetched for arbitrary guilds from it, otherwise it is ignored.</warn>
    * @param {ApplicationCommandPermissionData[]} permissions The new permissions for the command
+   * @param {Snowflake} [guildID] ID for the guild to fetch permissions for if this is a global command
    * @returns {Promise<ApplicationCommandPermissions[]>}
    * @example
    * // Set the permissions for this command
@@ -178,9 +180,8 @@ class ApplicationCommand extends Base {
    *   .then(console.log)
    *   .catch(console.error);
    */
-  setPermissions(permissions) {
-    if (!this.guild) throw new Error('GLOBAL_COMMAND_PERMISSIONS');
-    return this.manager.setPermissions(this, permissions);
+  setPermissions(permissions, guildID) {
+    return this.manager.setPermissions(this, permissions, guildID);
   }
 
   /**
@@ -205,15 +206,17 @@ class ApplicationCommand extends Base {
    * Transforms an {@link ApplicationCommandOptionData} object into something that can be used with the API.
    * @param {ApplicationCommandOptionData} option The option to transform
    * @param {boolean} [received] Whether this option has been received from Discord
-   * @returns {Object}
+   * @returns {APIApplicationCommandOption}
    * @private
    */
   static transformOption(option, received) {
+    const stringType = typeof option.type === 'string' ? option.type : ApplicationCommandOptionTypes[option.type];
     return {
       type: typeof option.type === 'number' && !received ? option.type : ApplicationCommandOptionTypes[option.type],
       name: option.name,
       description: option.description,
-      required: option.required,
+      required:
+        option.required ?? (stringType === 'SUB_COMMAND' || stringType === 'SUB_COMMAND_GROUP' ? undefined : false),
       choices: option.choices,
       options: option.options?.map(o => this.transformOption(o, received)),
     };
@@ -221,3 +224,13 @@ class ApplicationCommand extends Base {
 }
 
 module.exports = ApplicationCommand;
+
+/**
+ * @external APIApplicationCommand
+ * @see {@link https://discord.com/developers/docs/interactions/slash-commands#applicationcommand}
+ */
+
+/**
+ * @external APIApplicationCommandOption
+ * @see {@link https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoption}
+ */
