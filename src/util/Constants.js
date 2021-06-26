@@ -2,6 +2,7 @@
 
 const Package = (exports.Package = require('../../package.json'));
 const { Error, RangeError } = require('../errors');
+exports.browser = typeof window !== 'undefined';
 
 /**
  * Rate limit data

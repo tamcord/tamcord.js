@@ -13,6 +13,7 @@
     "require": "./src/index.js",
     "import": "./src/index.mjs"
   },
+  "unpkg": "./webpack/fosscord.min.js",
   "scripts": {
     "test": "npm run lint && npm run docs:test && npm run lint:typings",
     "test:typescript": "tsc",
@@ -24,26 +25,27 @@
     "prettier": "prettier --write src/**/*.js typings/**/*.ts",
     "prepublishOnly": "npm run test && gen-esm-wrapper ./src/index.js ./src/index.mjs",
     "prepare": "is-ci || husky install",
+    "build:browser": "webpack",
     "changelog": "conventional-changelog -p angular -i RELEASE_CHANGELOG.md -s"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/discordjs/discord.js.git"
+    "url": "https://github.com/fosscord/fosscord.js.git"
   },
   "keywords": [
     "discord",
+    "fosscord",
     "api",
     "bot",
     "client",
-    "node",
-    "discordapp"
+    "node"
   ],
   "author": "Amish Shah <amish@shah.gg>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/discordjs/discord.js/issues"
+    "url": "https://github.com/fosscord/fosscord.js/issues"
   },
-  "homepage": "https://github.com/discordjs/discord.js#readme",
+  "homepage": "https://github.com/fosscord/fosscord.js#readme",
   "dependencies": {
     "@discordjs/collection": "^0.1.6",
     "@discordjs/form-data": "^3.0.1",
@@ -60,6 +62,7 @@
     "@discordjs/docgen": "^0.10.0",
     "@discordjs/voice": "^0.3.0",
     "@types/node": "^12.12.6",
+    "babel-loader": "^8.2.2",
     "conventional-changelog-cli": "^2.1.1",
     "cross-env": "^7.0.3",
     "dtslint": "^4.1.0",
@@ -71,13 +74,49 @@
     "husky": "^6.0.0",
     "is-ci": "^3.0.0",
     "jest": "^27.0.3",
+    "json-filter-loader": "^1.0.0",
     "lint-staged": "^11.0.0",
     "prettier": "^2.3.0",
+    "terser-webpack-plugin": "^4.2.3",
     "tslint": "^6.1.3",
-    "typescript": "^4.3.2"
+    "typescript": "^4.3.2",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^3.3.12"
   },
   "engines": {
     "node": ">=14.0.0",
     "npm": ">=7.0.0"
+  },
+  "browser": {
+    "@discordjs/opus": false,
+    "https": false,
+    "ws": false,
+    "erlpack": false,
+    "prism-media": false,
+    "opusscript": false,
+    "node-opus": false,
+    "tweetnacl": false,
+    "sodium": false,
+    "worker_threads": false,
+    "zlib-sync": false,
+    "src/sharding/Shard.js": false,
+    "src/sharding/ShardClientUtil.js": false,
+    "src/sharding/ShardingManager.js": false,
+    "src/client/voice/ClientVoiceManager.js": false,
+    "src/client/voice/VoiceBroadcast.js": false,
+    "src/client/voice/VoiceConnection.js": false,
+    "src/client/voice/dispatcher/BroadcastDispatcher.js": false,
+    "src/client/voice/dispatcher/StreamDispatcher.js": false,
+    "src/client/voice/networking/VoiceUDPClient.js": false,
+    "src/client/voice/networking/VoiceWebSocket.js": false,
+    "src/client/voice/player/AudioPlayer.js": false,
+    "src/client/voice/player/BasePlayer.js": false,
+    "src/client/voice/player/BroadcastAudioPlayer.js": false,
+    "src/client/voice/receiver/PacketHandler.js": false,
+    "src/client/voice/receiver/Receiver.js": false,
+    "src/client/voice/util/PlayInterface.js": false,
+    "src/client/voice/util/Secretbox.js": false,
+    "src/client/voice/util/Silence.js": false,
+    "src/client/voice/util/VolumeInterface.js": false
   }
 }

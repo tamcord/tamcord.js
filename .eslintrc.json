@@ -8,6 +8,8 @@
     "es2020": true,
     "node": true
   },
+  "ignorePatterns": "webpack/**/*",
+  "overrides": [{ "files": ["*.browser.js"], "env": { "browser": true } }],
   "rules": {
     "import/order": [
       "error",

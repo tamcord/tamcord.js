@@ -28,6 +28,7 @@ const {
   Status,
   MFALevels,
   PremiumTiers,
+  browser,
 } = require('../util/Constants');
 const DataResolver = require('../util/DataResolver');
 const SystemChannelFlags = require('../util/SystemChannelFlags');
@@ -782,7 +783,7 @@ class Guild extends AnonymousGuild {
     }
     const data = await this.client.api.guilds(this.id).members(user).put({ data: options });
     // Data is an empty buffer if the member is already part of the guild.
-    return data instanceof Buffer ? this.members.fetch(user) : this.members.add(data);
+    return data instanceof (browser ? ArrayBuffer : Buffer) ? this.members.fetch(user) : this.members.add(data);
   }
 
   /**

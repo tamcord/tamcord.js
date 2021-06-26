@@ -17,7 +17,7 @@ const VoiceRegion = require('../structures/VoiceRegion');
 const Webhook = require('../structures/Webhook');
 const Widget = require('../structures/Widget');
 const Collection = require('../util/Collection');
-const { Events, DefaultOptions, InviteScopes } = require('../util/Constants');
+const { Events, DefaultOptions, InviteScopes, browser } = require('../util/Constants');
 const DataResolver = require('../util/DataResolver');
 const Intents = require('../util/Intents');
 const Permissions = require('../util/Permissions');
@@ -98,9 +98,10 @@ class Client extends BaseClient {
      * Shard helpers for the client (only if the process was spawned from a {@link ShardingManager})
      * @type {?ShardClientUtil}
      */
-    this.shard = process.env.SHARDING_MANAGER
-      ? ShardClientUtil.singleton(this, process.env.SHARDING_MANAGER_MODE)
-      : null;
+    this.shard =
+      !browser && process.env.SHARDING_MANAGER
+        ? ShardClientUtil.singleton(this, process.env.SHARDING_MANAGER_MODE)
+        : null;
 
     /**
      * All of the {@link User} objects that have been cached at any point, mapped by their IDs
