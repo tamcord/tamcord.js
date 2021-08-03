@@ -4,9 +4,9 @@ module.exports = {
   // "Root" classes (starting points)
   BaseClient: require('./client/BaseClient'),
   Client: require('./client/Client'),
-  Shard: require('./sharding/Shard'),
-  ShardClientUtil: require('./sharding/ShardClientUtil'),
-  ShardingManager: require('./sharding/ShardingManager'),
+  // Shard: require('./sharding/Shard'),
+  // ShardClientUtil: require('./sharding/ShardClientUtil'),
+  // ShardingManager: require('./sharding/ShardingManager'),
   WebhookClient: require('./client/WebhookClient'),
 
   // Utilities
