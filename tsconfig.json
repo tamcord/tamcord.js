@@ -12,7 +12,6 @@
     "module": "commonjs",
     "target": "ES6",
     "sourceMap": false,
-    "skipDefaultLibCheck": true,
-    "skipLibCheck": true
+    "skipDefaultLibCheck": true
   }
 }

@@ -28,12 +28,13 @@ fosscord.js is a fork of [discord.js](https://discord.js.org/) that allows you t
 - 100% coverage of the Fosscord API
 
 ### Additions
+
 - User only features (video/screenshare)
 - Voice support for browser
 
 ## Installation
 
-**Node.js 14.0.0 or newer is required.**  
+**Node.js 14.6.0 or newer is required.**
 
 Without voice support: `npm install fosscord.js`  
 With voice support ([@discordjs/opus](https://www.npmjs.com/package/@discordjs/opus)): `npm install fosscord.js @discordjs/opus`  
@@ -55,6 +56,36 @@ For production bots, using @discordjs/opus should be considered a necessity, esp
 
 ## Example usage
 
+First, we need to register a slash command against the Discord API:
+
+```js
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+
+const commands = [
+  {
+    name: 'ping',
+    description: 'Replies with Pong!',
+  },
+];
+
+const rest = new REST({ version: '9' }).setToken('token');
+
+(async () => {
+  try {
+    console.log('Started refreshing application (/) commands');
+
+    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
+
+    console.log('Sucessfully reloaded application (/) commands.');
+  } catch (error) {
+    console.error(error);
+  }
+})();
+```
+
+Afterwards we can create a quite simple example bot:
+
 ```js
 const { Client, Intents } = require('fosscord.js');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
@@ -63,9 +94,11 @@ client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
-client.on('message', message => {
-  if (message.content === 'ping') {
-    message.channel.send('pong');
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isCommand()) return;
+
+  if (interaction.commandName === 'ping') {
+    await interaction.reply('Pong!');
   }
 });
 
@@ -77,7 +110,7 @@ client.login('token');
 - [Website](https://fosscord.com/) ([source](https://github.com/fosscord/fosscord-landingpage))
 - [Documentation](https://docs.fosscord.com) ([source](https://github.com/fosscord/fosscord-docs))
 - [Fosscord Discord server](https://discord.gg/ZrnGQP6p3d)
-- [Discord.js Guide](https://discordjs.guide/) ([source](https://github.com/discordjs/guide)) - this is still for stable  
+- [Discord.js Guide](https://discordjs.guide/) ([source](https://github.com/discordjs/guide)) - this is still for stable
 - [Discord.js Discord server](https://discord.gg/djs)
 - [GitHub](https://github.com/fosscord/fosscord.js)
 - [NPM](https://www.npmjs.com/package/fosscord.js)
