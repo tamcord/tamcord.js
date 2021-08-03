@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const Base = require('./Base');
 const Emoji = require('./Emoji');
@@ -10,7 +11,7 @@ class WelcomeChannel extends Base {
         super(guild.client);
         /**
          * The guild for this welcome channel
-         * @type {Guild|WelcomeGuild}
+         * @type {Guild|InviteGuild}
          */
         this.guild = guild;
         /**
@@ -31,14 +32,14 @@ class WelcomeChannel extends Base {
          * The id of this welcome channel
          * @type {Snowflake}
          */
-        this.channelID = data.channel_id;
+        this.channelId = data.channel_id;
     }
     /**
      * The channel of this welcome channel
-     * @type {?TextChannel|NewsChannel}
+     * @type {?(TextChannel|NewsChannel)}
      */
     get channel() {
-        return this.client.channels.resolve(this.channelID);
+        return this.client.channels.resolve(this.channelId);
     }
     /**
      * The emoji of this welcome channel

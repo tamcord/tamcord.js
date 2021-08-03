@@ -1,10 +1,11 @@
+// @ts-nocheck
 'use strict';
 const Action = require('./Action');
 const { Events } = require('../../util/Constants');
 class GuildEmojiCreateAction extends Action {
     handle(guild, createdEmoji) {
         const already = guild.emojis.cache.has(createdEmoji.id);
-        const emoji = guild.emojis.add(createdEmoji);
+        const emoji = guild.emojis._add(createdEmoji);
         /**
          * Emitted whenever a custom emoji is created in a guild.
          * @event Client#emojiCreate

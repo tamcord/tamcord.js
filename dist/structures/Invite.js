@@ -1,4 +1,14 @@
+// @ts-nocheck
 'use strict';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 const Base = require('./Base');
 const IntegrationApplication = require('./IntegrationApplication');
 const InviteStageInstance = require('./InviteStageInstance');
@@ -16,6 +26,7 @@ class Invite extends Base {
         this._patch(data);
     }
     _patch(data) {
+        var _a, _b, _c, _d, _e, _f, _g;
         const InviteGuild = require('./InviteGuild');
         const Guild = require('./Guild');
         /**
@@ -35,42 +46,42 @@ class Invite extends Base {
          * The approximate number of online members of the guild this invite is for
          * @type {?number}
          */
-        this.presenceCount = 'approximate_presence_count' in data ? data.approximate_presence_count : null;
+        this.presenceCount = (_a = data.approximate_presence_count) !== null && _a !== void 0 ? _a : null;
         /**
          * The approximate total number of members of the guild this invite is for
          * @type {?number}
          */
-        this.memberCount = 'approximate_member_count' in data ? data.approximate_member_count : null;
+        this.memberCount = (_b = data.approximate_member_count) !== null && _b !== void 0 ? _b : null;
         /**
          * Whether or not this invite is temporary
          * @type {?boolean}
          */
-        this.temporary = 'temporary' in data ? data.temporary : null;
+        this.temporary = (_c = data.temporary) !== null && _c !== void 0 ? _c : null;
         /**
          * The maximum age of the invite, in seconds, 0 if never expires
          * @type {?number}
          */
-        this.maxAge = 'max_age' in data ? data.max_age : null;
+        this.maxAge = (_d = data.max_age) !== null && _d !== void 0 ? _d : null;
         /**
          * How many times this invite has been used
          * @type {?number}
          */
-        this.uses = 'uses' in data ? data.uses : null;
+        this.uses = (_e = data.uses) !== null && _e !== void 0 ? _e : null;
         /**
          * The maximum uses of this invite
          * @type {?number}
          */
-        this.maxUses = 'max_uses' in data ? data.max_uses : null;
+        this.maxUses = (_f = data.max_uses) !== null && _f !== void 0 ? _f : null;
         /**
          * The user who created this invite
          * @type {?User}
          */
-        this.inviter = data.inviter ? this.client.users.add(data.inviter) : null;
+        this.inviter = data.inviter ? this.client.users._add(data.inviter) : null;
         /**
          * The user whose stream to display for this voice channel stream invite
          * @type {?User}
          */
-        this.targetUser = data.target_user ? this.client.users.add(data.target_user) : null;
+        this.targetUser = data.target_user ? this.client.users._add(data.target_user) : null;
         /**
          * The embedded application to open for this voice channel embedded application invite
          * @type {?IntegrationApplication}
@@ -88,12 +99,12 @@ class Invite extends Base {
          * The target type
          * @type {?TargetType}
          */
-        this.targetType = typeof data.target_type === 'number' ? data.target_type : null;
+        this.targetType = (_g = data.target_type) !== null && _g !== void 0 ? _g : null;
         /**
          * The channel the invite is for
          * @type {Channel}
          */
-        this.channel = this.client.channels.add(data.channel, this.guild, false);
+        this.channel = this.client.channels._add(data.channel, this.guild, { cache: false });
         /**
          * The timestamp the invite was created at
          * @type {?number}
@@ -163,7 +174,10 @@ class Invite extends Base {
      * @returns {Promise<Invite>}
      */
     delete(reason) {
-        return this.client.api.invites[this.code].delete({ reason }).then(() => this);
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.client.api.invites[this.code].delete({ reason });
+            return this;
+        });
     }
     /**
      * When concatenated with a string, this automatically concatenates the invite's URL instead of the object.
@@ -182,9 +196,9 @@ class Invite extends Base {
             presenceCount: false,
             memberCount: false,
             uses: false,
-            channel: 'channelID',
-            inviter: 'inviterID',
-            guild: 'guildID',
+            channel: 'channelId',
+            inviter: 'inviterId',
+            guild: 'guildId',
         });
     }
     valueOf() {

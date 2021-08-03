@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const BitField = require('./BitField');
 /**
@@ -23,7 +24,7 @@ class ApplicationFlags extends BitField {
  * * `GROUP_DM_CREATE`
  * * `RPC_HAS_CONNECTED`
  * * `GATEWAY_PRESENCE`
- * * `FATEWAY_PRESENCE_LIMITED`
+ * * `GATEWAY_PRESENCE_LIMITED`
  * * `GATEWAY_GUILD_MEMBERS`
  * * `GATEWAY_GUILD_MEMBERS_LIMITED`
  * * `VERIFICATION_PENDING_GUILD_LIMIT`

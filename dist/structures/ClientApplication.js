@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -55,12 +56,12 @@ class ClientApplication extends Application {
         this.botPublic = (_h = (_g = data.bot_public) !== null && _g !== void 0 ? _g : this.botPublic) !== null && _h !== void 0 ? _h : null;
         /**
          * The owner of this OAuth application
-         * @type {?User|Team}
+         * @type {?(User|Team)}
          */
         this.owner = data.team
             ? new Team(this.client, data.team)
             : data.owner
-                ? this.client.users.add(data.owner)
+                ? this.client.users._add(data.owner)
                 : (_j = this.owner) !== null && _j !== void 0 ? _j : null;
     }
     /**

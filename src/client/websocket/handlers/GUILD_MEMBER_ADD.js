@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 
 const { Events, Status } = require('../../../util/Constants');

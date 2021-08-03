@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8,18 +9,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const BaseManager = require('./BaseManager');
+const CachedManager = require('./CachedManager');
 const GuildMember = require('../structures/GuildMember');
 const Message = require('../structures/Message');
 const ThreadMember = require('../structures/ThreadMember');
 const User = require('../structures/User');
 /**
  * Manages API methods for users and stores their cache.
- * @extends {BaseManager}
+ * @extends {CachedManager}
  */
-class UserManager extends BaseManager {
+class UserManager extends CachedManager {
     constructor(client, iterable) {
-        super(client, iterable, User);
+        super(client, User, iterable);
     }
     /**
      * The cache of this manager
@@ -36,7 +37,7 @@ class UserManager extends BaseManager {
      * @typedef {User|Snowflake|Message|GuildMember|ThreadMember} UserResolvable
      */
     /**
-     * Resolves a UserResolvable to a User object.
+     * Resolves a {@link UserResolvable} to a {@link User} object.
      * @param {UserResolvable} user The UserResolvable to identify
      * @returns {?User}
      */
@@ -48,22 +49,22 @@ class UserManager extends BaseManager {
         return super.resolve(user);
     }
     /**
-     * Resolves a UserResolvable to a user ID string.
+     * Resolves a {@link UserResolvable} to a {@link User} id.
      * @param {UserResolvable} user The UserResolvable to identify
      * @returns {?Snowflake}
      */
-    resolveID(user) {
+    resolveId(user) {
         if (user instanceof ThreadMember)
             return user.id;
         if (user instanceof GuildMember)
             return user.user.id;
         if (user instanceof Message)
             return user.author.id;
-        return super.resolveID(user);
+        return super.resolveId(user);
     }
     /**
      * Obtains a user from Discord, or the user cache if it's already available.
-     * @param {Snowflake} id ID of the user
+     * @param {Snowflake} id The user's id
      * @param {BaseFetchOptions} [options] Additional options for this fetch
      * @returns {Promise<User>}
      */
@@ -75,7 +76,7 @@ class UserManager extends BaseManager {
                     return existing;
             }
             const data = yield this.client.api.users(id).get();
-            return this.add(data, cache);
+            return this._add(data, cache);
         });
     }
 }

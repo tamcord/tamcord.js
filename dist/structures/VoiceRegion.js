@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const Util = require('../util/Util');
 /**
@@ -6,7 +7,7 @@ const Util = require('../util/Util');
 class VoiceRegion {
     constructor(data) {
         /**
-         * The ID of the region
+         * The region's id
          * @type {string}
          */
         this.id = data.id;

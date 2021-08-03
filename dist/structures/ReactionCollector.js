@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8,8 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+const { Collection } = require('@discordjs/collection');
 const Collector = require('./interfaces/Collector');
-const Collection = require('../util/Collection');
 const { Events } = require('../util/Constants');
 /**
  * @typedef {CollectorOptions} ReactionCollectorOptions
@@ -79,7 +80,7 @@ class ReactionCollector extends Collector {
      * Handles an incoming reaction for possible collection.
      * @param {MessageReaction} reaction The reaction to possibly collect
      * @param {User} user The user that added the reaction
-     * @returns {Promise<Snowflake|string>}
+     * @returns {Promise<?(Snowflake|string)>}
      * @private
      */
     collect(reaction, user) {
@@ -141,6 +142,11 @@ class ReactionCollector extends Collector {
         this.users.clear();
         this.checkEnd();
     }
+    /**
+     * The reason this collector has ended with, or null if it hasn't ended yet
+     * @type {?string}
+     * @readonly
+     */
     get endReason() {
         if (this.options.max && this.total >= this.options.max)
             return 'limit';
@@ -179,7 +185,8 @@ class ReactionCollector extends Collector {
      * @returns {void}
      */
     _handleGuildDeletion(guild) {
-        if (this.message.guild && guild.id === this.message.guild.id) {
+        var _a;
+        if (guild.id === ((_a = this.message.guild) === null || _a === void 0 ? void 0 : _a.id)) {
             this.stop('guildDelete');
         }
     }
@@ -189,7 +196,8 @@ class ReactionCollector extends Collector {
      * @returns {Snowflake|string}
      */
     static key(reaction) {
-        return reaction.emoji.id || reaction.emoji.name;
+        var _a;
+        return (_a = reaction.emoji.id) !== null && _a !== void 0 ? _a : reaction.emoji.name;
     }
 }
 module.exports = ReactionCollector;

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const Application = require('./interfaces/Application');
 /**
@@ -12,7 +13,7 @@ class IntegrationApplication extends Application {
          * The bot user for this application
          * @type {?User}
          */
-        this.bot = data.bot ? this.client.users.add(data.bot) : (_a = this.bot) !== null && _a !== void 0 ? _a : null;
+        this.bot = data.bot ? this.client.users._add(data.bot) : (_a = this.bot) !== null && _a !== void 0 ? _a : null;
         /**
          * The url of the application's terms of service
          * @type {?string}

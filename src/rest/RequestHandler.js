@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 
 const { AsyncQueue } = require('@sapphire/async-queue');

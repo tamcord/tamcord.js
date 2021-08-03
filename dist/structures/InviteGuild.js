@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const AnonymousGuild = require('./AnonymousGuild');
 const WelcomeScreen = require('./WelcomeScreen');

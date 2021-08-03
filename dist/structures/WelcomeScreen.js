@@ -1,7 +1,8 @@
+// @ts-nocheck
 'use strict';
+const { Collection } = require('@discordjs/collection');
 const Base = require('./Base');
 const WelcomeChannel = require('./WelcomeChannel');
-const Collection = require('../util/Collection');
 /**
  * Represents a welcome screen.
  * @extends {Base}
@@ -27,7 +28,7 @@ class WelcomeScreen extends Base {
         this.welcomeChannels = new Collection();
         for (const channel of data.welcome_channels) {
             const welcomeChannel = new WelcomeChannel(this.guild, channel);
-            this.welcomeChannels.set(welcomeChannel.channelID, welcomeChannel);
+            this.welcomeChannels.set(welcomeChannel.channelId, welcomeChannel);
         }
     }
     /**

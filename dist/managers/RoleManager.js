@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8,18 +9,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const BaseManager = require('./BaseManager');
+const { Collection } = require('@discordjs/collection');
+const CachedManager = require('./CachedManager');
+const { TypeError } = require('../errors');
 const Role = require('../structures/Role');
-const Collection = require('../util/Collection');
 const Permissions = require('../util/Permissions');
-const { resolveColor } = require('../util/Util');
+const { resolveColor, setPosition } = require('../util/Util');
 /**
  * Manages API methods for roles and stores their cache.
- * @extends {BaseManager}
+ * @extends {CachedManager}
  */
-class RoleManager extends BaseManager {
+class RoleManager extends CachedManager {
     constructor(guild, iterable) {
-        super(guild.client, iterable, Role);
+        super(guild.client, Role, iterable);
         /**
          * The guild belonging to this manager
          * @type {Guild}
@@ -31,12 +33,12 @@ class RoleManager extends BaseManager {
      * @type {Collection<Snowflake, Role>}
      * @name RoleManager#cache
      */
-    add(data, cache) {
-        return super.add(data, cache, { extras: [this.guild] });
+    _add(data, cache) {
+        return super._add(data, cache, { extras: [this.guild] });
     }
     /**
      * Obtains a role from Discord, or the role cache if they're already available.
-     * @param {Snowflake} [id] ID of the role
+     * @param {Snowflake} [id] The role's id
      * @param {BaseFetchOptions} [options] Additional options for this fetch
      * @returns {Promise<?Role|Collection<Snowflake, Role>>}
      * @example
@@ -62,7 +64,7 @@ class RoleManager extends BaseManager {
             const data = yield this.client.api.guilds(this.guild.id).roles.get();
             const roles = new Collection();
             for (const role of data)
-                roles.set(role.id, this.add(role, cache));
+                roles.set(role.id, this._add(role, cache));
             return id ? (_a = roles.get(id)) !== null && _a !== void 0 ? _a : null : roles;
         });
     }
@@ -73,7 +75,7 @@ class RoleManager extends BaseManager {
      * @typedef {Role|Snowflake} RoleResolvable
      */
     /**
-     * Resolves a RoleResolvable to a Role object.
+     * Resolves a {@link RoleResolvable} to a {@link Role} object.
      * @method resolve
      * @memberof RoleManager
      * @instance
@@ -81,8 +83,8 @@ class RoleManager extends BaseManager {
      * @returns {?Role}
      */
     /**
-     * Resolves a RoleResolvable to a role ID string.
-     * @method resolveID
+     * Resolves a {@link RoleResolvable} to a {@link Role} id.
+     * @method resolveId
      * @memberof RoleManager
      * @instance
      * @param {RoleResolvable} role The role resolvable to resolve
@@ -120,31 +122,66 @@ class RoleManager extends BaseManager {
      *   .catch(console.error);
      */
     create(options = {}) {
-        let { name, color, hoist, permissions, position, mentionable, reason } = options;
-        if (color)
-            color = resolveColor(color);
-        if (typeof permissions !== 'undefined')
-            permissions = new Permissions(permissions);
-        return this.client.api
-            .guilds(this.guild.id)
-            .roles.post({
-            data: {
-                name,
-                color,
-                hoist,
-                permissions,
-                mentionable,
-            },
-            reason,
-        })
-            .then(r => {
+        return __awaiter(this, void 0, void 0, function* () {
+            let { name, color, hoist, permissions, position, mentionable, reason } = options;
+            if (color)
+                color = resolveColor(color);
+            if (typeof permissions !== 'undefined')
+                permissions = new Permissions(permissions);
+            const data = yield this.client.api.guilds(this.guild.id).roles.post({
+                data: {
+                    name,
+                    color,
+                    hoist,
+                    permissions,
+                    mentionable,
+                },
+                reason,
+            });
             const { role } = this.client.actions.GuildRoleCreate.handle({
                 guild_id: this.guild.id,
-                role: r,
+                role: data,
             });
             if (position)
                 return role.setPosition(position, reason);
             return role;
+        });
+    }
+    /**
+     * Edits a role of the guild.
+     * @param {RoleResolvable} role The role to edit
+     * @param {RoleData} data The new data for the role
+     * @param {string} [reason] Reason for editing this role
+     * @returns {Promise<Role>}
+     * @example
+     * // Edit a role
+     * guild.roles.edit('222079219327434752', { name: 'buddies' })
+     *   .then(updated => console.log(`Edited role name to ${updated.name}`))
+     *   .catch(console.error);
+     */
+    edit(role, data, reason) {
+        return __awaiter(this, void 0, void 0, function* () {
+            role = this.resolve(role);
+            if (!role)
+                throw new TypeError('INVALID_TYPE', 'role', 'RoleResolvable');
+            if (typeof data.position === 'number') {
+                const updatedRoles = yield setPosition(role, data.position, false, this.guild._sortedRoles(), this.client.api.guilds(this.guild.id).roles, reason);
+                this.client.actions.GuildRolesPositionUpdate.handle({
+                    guild_id: this.guild.id,
+                    roles: updatedRoles,
+                });
+            }
+            const _data = {
+                name: data.name,
+                color: typeof data.color === 'undefined' ? undefined : resolveColor(data.color),
+                hoist: data.hoist,
+                permissions: typeof data.permissions === 'undefined' ? undefined : new Permissions(data.permissions),
+                mentionable: data.mentionable,
+            };
+            const d = yield this.client.api.guilds(this.guild.id).roles(role.id).patch({ data: _data, reason });
+            const clone = role._clone();
+            clone._patch(d);
+            return clone;
         });
     }
     /**
@@ -155,10 +192,10 @@ class RoleManager extends BaseManager {
      */
     botRoleFor(user) {
         var _a;
-        const userID = this.client.users.resolveID(user);
-        if (!userID)
+        const userId = this.client.users.resolveId(user);
+        if (!userId)
             return null;
-        return (_a = this.cache.find(role => { var _a; return ((_a = role.tags) === null || _a === void 0 ? void 0 : _a.botID) === userID; })) !== null && _a !== void 0 ? _a : null;
+        return (_a = this.cache.find(role => { var _a; return ((_a = role.tags) === null || _a === void 0 ? void 0 : _a.botId) === userId; })) !== null && _a !== void 0 ? _a : null;
     }
     /**
      * The `@everyone` role of the guild

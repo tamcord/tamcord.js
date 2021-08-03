@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -19,7 +20,7 @@ class BaseGuild extends Base {
     constructor(client, data) {
         super(client);
         /**
-         * The ID of this guild
+         * The guild's id
          * @type {Snowflake}
          */
         this.id = data.id;
@@ -99,7 +100,7 @@ class BaseGuild extends Base {
     fetch() {
         return __awaiter(this, void 0, void 0, function* () {
             const data = yield this.client.api.guilds(this.id).get({ query: { with_counts: true } });
-            return this.client.guilds.add(data);
+            return this.client.guilds._add(data);
         });
     }
     /**

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -9,10 +10,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const EventEmitter = require('events');
+const { Collection } = require('@discordjs/collection');
 const WebSocketShard = require('./WebSocketShard');
 const PacketHandlers = require('./handlers');
 const { Error } = require('../../errors');
-const Collection = require('../../util/Collection');
 const { Events, ShardEvents, Status, WSCodes, WSEvents } = require('../../util/Constants');
 const Util = require('../../util/Util');
 const BeforeReadyWhitelist = [
@@ -155,8 +156,8 @@ class WebSocketManager extends EventEmitter {
                     /**
                      * Emitted when a shard turns ready.
                      * @event Client#shardReady
-                     * @param {number} id The shard ID that turned ready
-                     * @param {?Set<string>} unavailableGuilds Set of unavailable guild IDs, if any
+                     * @param {number} id The shard id that turned ready
+                     * @param {?Set<string>} unavailableGuilds Set of unavailable guild ids, if any
                      */
                     this.client.emit(Events.SHARD_READY, shard.id, unavailableGuilds);
                     if (!this.shardQueue.size)
@@ -169,7 +170,7 @@ class WebSocketManager extends EventEmitter {
                          * Emitted when a shard's WebSocket disconnects and will no longer reconnect.
                          * @event Client#shardDisconnect
                          * @param {CloseEvent} event The WebSocket close event
-                         * @param {number} id The shard ID that disconnected
+                         * @param {number} id The shard id that disconnected
                          */
                         this.client.emit(Events.SHARD_DISCONNECT, event, shard.id);
                         this.debug(WSCodes[event.code], shard);
@@ -177,17 +178,17 @@ class WebSocketManager extends EventEmitter {
                     }
                     if (UNRESUMABLE_CLOSE_CODES.includes(event.code)) {
                         // These event codes cannot be resumed
-                        shard.sessionID = null;
+                        shard.sessionId = null;
                     }
                     /**
                      * Emitted when a shard is attempting to reconnect or re-identify.
                      * @event Client#shardReconnecting
-                     * @param {number} id The shard ID that is attempting to reconnect
+                     * @param {number} id The shard id that is attempting to reconnect
                      */
                     this.client.emit(Events.SHARD_RECONNECTING, shard.id);
                     this.shardQueue.add(shard);
-                    if (shard.sessionID) {
-                        this.debug(`Session ID is present, attempting an immediate reconnect...`, shard);
+                    if (shard.sessionId) {
+                        this.debug(`Session id is present, attempting an immediate reconnect...`, shard);
                         this.reconnect();
                     }
                     else {
@@ -211,7 +212,7 @@ class WebSocketManager extends EventEmitter {
                 yield shard.connect();
             }
             catch (error) {
-                if (error && error.code && UNRECOVERABLE_CLOSE_CODES.includes(error.code)) {
+                if ((error === null || error === void 0 ? void 0 : error.code) && UNRECOVERABLE_CLOSE_CODES.includes(error.code)) {
                     throw new Error(WSCodes[error.code]);
                     // Undefined if session is invalid, error event for regular closes
                 }
@@ -313,9 +314,9 @@ class WebSocketManager extends EventEmitter {
         }
         if (this.packetQueue.length) {
             const item = this.packetQueue.shift();
-            this.client.setImmediate(() => {
+            setImmediate(() => {
                 this.handlePacket(item.packet, item.shard);
-            });
+            }).unref();
         }
         if (packet && PacketHandlers[packet.t]) {
             PacketHandlers[packet.t](this.client, packet, shard);
@@ -344,8 +345,9 @@ class WebSocketManager extends EventEmitter {
         /**
          * Emitted when the client becomes ready to start working.
          * @event Client#ready
+         * @param {Client} client The client
          */
-        this.client.emit(Events.CLIENT_READY);
+        this.client.emit(Events.CLIENT_READY, this.client);
         this.handlePacket();
     }
 }

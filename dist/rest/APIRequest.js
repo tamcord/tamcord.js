@@ -1,11 +1,11 @@
+// @ts-nocheck
 'use strict';
 const https = require('https');
 const FormData = require('@discordjs/form-data');
 const AbortController = require('abort-controller');
 const fetch = require('node-fetch');
 const { UserAgent } = require('../util/Constants');
-if (https.Agent)
-    var agent = new https.Agent({ keepAlive: true });
+const agent = new https.Agent({ keepAlive: true });
 class APIRequest {
     constructor(rest, method, path, options) {
         this.rest = rest;
@@ -14,6 +14,8 @@ class APIRequest {
         this.route = options.route;
         this.options = options;
         this.retries = 0;
+        const { userAgentSuffix } = this.client.options;
+        this.fullUserAgent = `${UserAgent}${userAgentSuffix.length ? `, ${userAgentSuffix.join(', ')}` : ''}`;
         let queryString = '';
         if (options.query) {
             const query = Object.entries(options.query)
@@ -24,26 +26,34 @@ class APIRequest {
         this.path = `${path}${queryString && `?${queryString}`}`;
     }
     make() {
+        var _a;
         const API = this.options.versioned === false
             ? this.client.options.http.api
             : `${this.client.options.http.api}/v${this.client.options.http.version}`;
         const url = API + this.path;
-        let headers = Object.assign({}, this.client.options.http.headers);
+        let headers = Object.assign(Object.assign({}, this.client.options.http.headers), { 'User-Agent': this.fullUserAgent });
         if (this.options.auth !== false)
             headers.Authorization = this.rest.getAuth();
         if (this.options.reason)
             headers['X-Audit-Log-Reason'] = encodeURIComponent(this.options.reason);
-        headers['User-Agent'] = UserAgent;
         if (this.options.headers)
             headers = Object.assign(headers, this.options.headers);
         let body;
         if (this.options.files && this.options.files.length) {
             body = new FormData();
-            for (const file of this.options.files)
-                if (file && file.file)
-                    body.append(file.name, file.file, file.name);
-            if (typeof this.options.data !== 'undefined')
-                body.append('payload_json', JSON.stringify(this.options.data));
+            for (const file of this.options.files) {
+                if (file === null || file === void 0 ? void 0 : file.file)
+                    body.append((_a = file.key) !== null && _a !== void 0 ? _a : file.name, file.file, file.name);
+            }
+            if (typeof this.options.data !== 'undefined') {
+                if (this.options.dontUsePayloadJSON) {
+                    for (const [key, value] of Object.entries(this.options.data))
+                        body.append(key, value);
+                }
+                else {
+                    body.append('payload_json', JSON.stringify(this.options.data));
+                }
+            }
             headers = Object.assign(headers, body.getHeaders());
             // eslint-disable-next-line eqeqeq
         }
@@ -52,14 +62,14 @@ class APIRequest {
             headers['Content-Type'] = 'application/json';
         }
         const controller = new AbortController();
-        const timeout = this.client.setTimeout(() => controller.abort(), this.client.options.restRequestTimeout);
+        const timeout = setTimeout(() => controller.abort(), this.client.options.restRequestTimeout).unref();
         return fetch(url, {
             method: this.method,
             headers,
             agent,
             body,
             signal: controller.signal,
-        }).finally(() => this.client.clearTimeout(timeout));
+        }).finally(() => clearTimeout(timeout));
     }
 }
 module.exports = APIRequest;

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const Interaction = require('./Interaction');
 const InteractionWebhook = require('./InteractionWebhook');
@@ -14,14 +15,14 @@ class MessageComponentInteraction extends Interaction {
         super(client, data);
         /**
          * The message to which the component was attached
-         * @type {?(Message|APIMessageRaw)}
+         * @type {Message|APIMessage}
          */
-        this.message = data.message ? (_b = (_a = this.channel) === null || _a === void 0 ? void 0 : _a.messages.add(data.message)) !== null && _b !== void 0 ? _b : data.message : null;
+        this.message = (_b = (_a = this.channel) === null || _a === void 0 ? void 0 : _a.messages._add(data.message)) !== null && _b !== void 0 ? _b : data.message;
         /**
-         * The custom ID of the component which was interacted with
+         * The custom id of the component which was interacted with
          * @type {string}
          */
-        this.customID = data.data.custom_id;
+        this.customId = data.data.custom_id;
         /**
          * The type of component which was interacted with
          * @type {string}
@@ -46,18 +47,24 @@ class MessageComponentInteraction extends Interaction {
          * An associated interaction webhook, can be used to further interact with this interaction
          * @type {InteractionWebhook}
          */
-        this.webhook = new InteractionWebhook(this.client, this.applicationID, this.token);
+        this.webhook = new InteractionWebhook(this.client, this.applicationId, this.token);
     }
     /**
+     * Raw message components from the API
+     * * APIMessageButton
+     * * APIMessageSelectMenu
+     * @typedef {APIMessageButton|APIMessageSelectMenu} APIMessageActionRowComponent
+     */
+    /**
      * The component which was interacted with
-     * @type {?(MessageActionRowComponent|Object)}
+     * @type {?(MessageActionRowComponent|APIMessageActionRowComponent)}
      * @readonly
      */
     get component() {
         var _a;
         return ((_a = this.message.components
             .flatMap(row => row.components)
-            .find(component => { var _a; return ((_a = component.customID) !== null && _a !== void 0 ? _a : component.custom_id) === this.customID; })) !== null && _a !== void 0 ? _a : null);
+            .find(component => { var _a; return ((_a = component.customId) !== null && _a !== void 0 ? _a : component.custom_id) === this.customId; })) !== null && _a !== void 0 ? _a : null);
     }
     /**
      * Resolves the type of a MessageComponent

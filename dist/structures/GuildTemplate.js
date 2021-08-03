@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -52,15 +53,15 @@ class GuildTemplate extends Base {
          */
         this.usageCount = data.usage_count;
         /**
-         * The ID of the user that created this template
+         * The id of the user that created this template
          * @type {Snowflake}
          */
-        this.creatorID = data.creator_id;
+        this.creatorId = data.creator_id;
         /**
          * The user that created this template
          * @type {User}
          */
-        this.creator = this.client.users.add(data.creator);
+        this.creator = this.client.users._add(data.creator);
         /**
          * The time of when this template was created at
          * @type {Date}
@@ -72,10 +73,10 @@ class GuildTemplate extends Base {
          */
         this.updatedAt = new Date(data.updated_at);
         /**
-         * The ID of the guild that this template belongs to
+         * The id of the guild that this template belongs to
          * @type {Snowflake}
          */
-        this.guildID = data.source_guild_id;
+        this.guildId = data.source_guild_id;
         /**
          * The data of the guild that this template would create
          * @type {APIGuild}
@@ -104,11 +105,9 @@ class GuildTemplate extends Base {
                     icon: yield DataResolver.resolveImage(icon),
                 },
             });
-            // eslint-disable-next-line consistent-return
+            if (client.guilds.cache.has(data.id))
+                return client.guilds.cache.get(data.id);
             return new Promise(resolve => {
-                const createdGuild = client.guilds.cache.get(data.id);
-                if (createdGuild)
-                    return resolve(createdGuild);
                 const resolveGuild = guild => {
                     client.off(Events.GUILD_CREATE, handleGuild);
                     client.decrementMaxListeners();
@@ -116,13 +115,13 @@ class GuildTemplate extends Base {
                 };
                 const handleGuild = guild => {
                     if (guild.id === data.id) {
-                        client.clearTimeout(timeout);
+                        clearTimeout(timeout);
                         resolveGuild(guild);
                     }
                 };
                 client.incrementMaxListeners();
                 client.on(Events.GUILD_CREATE, handleGuild);
-                const timeout = client.setTimeout(() => resolveGuild(client.guilds.add(data)), 10000);
+                const timeout = setTimeout(() => resolveGuild(client.guilds._add(data)), 10000).unref();
             });
         });
     }
@@ -138,33 +137,30 @@ class GuildTemplate extends Base {
      * @returns {Promise<GuildTemplate>}
      */
     edit({ name, description } = {}) {
-        return this.client.api
-            .guilds(this.guildID)
-            .templates(this.code)
-            .patch({ data: { name, description } })
-            .then(data => this._patch(data));
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield this.client.api.guilds(this.guildId).templates(this.code).patch({ data: { name, description } });
+            return this._patch(data);
+        });
     }
     /**
      * Deletes this template.
      * @returns {Promise<GuildTemplate>}
      */
     delete() {
-        return this.client.api
-            .guilds(this.guildID)
-            .templates(this.code)
-            .delete()
-            .then(() => this);
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.client.api.guilds(this.guildId).templates(this.code).delete();
+            return this;
+        });
     }
     /**
      * Syncs this template to the current state of the guild.
      * @returns {Promise<GuildTemplate>}
      */
     sync() {
-        return this.client.api
-            .guilds(this.guildID)
-            .templates(this.code)
-            .put()
-            .then(data => this._patch(data));
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield this.client.api.guilds(this.guildId).templates(this.code).put();
+            return this._patch(data);
+        });
     }
     /**
      * The timestamp of when this template was created at
@@ -188,7 +184,7 @@ class GuildTemplate extends Base {
      * @readonly
      */
     get guild() {
-        return this.client.guilds.cache.get(this.guildID) || null;
+        return this.client.guilds.resolve(this.guildId);
     }
     /**
      * The URL of this template

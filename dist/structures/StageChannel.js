@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const BaseGuildVoiceChannel = require('./BaseGuildVoiceChannel');
 /**
@@ -16,13 +17,21 @@ class StageChannel extends BaseGuildVoiceChannel {
         }
     }
     /**
-     * The instance of this stage channel, if it exists
+     * The stage instance of this stage channel, if it exists
      * @type {?StageInstance}
      * @readonly
      */
-    get instance() {
+    get stageInstance() {
         var _a;
-        return (_a = this.guild.stageInstances.cache.find(stageInstance => stageInstance.channelID === this.id)) !== null && _a !== void 0 ? _a : null;
+        return (_a = this.guild.stageInstances.cache.find(stageInstance => stageInstance.channelId === this.id)) !== null && _a !== void 0 ? _a : null;
+    }
+    /**
+     * Creates a stage instance associated to this stage channel.
+     * @param {StageInstanceCreateOptions} options The options to create the stage instance
+     * @returns {Promise<StageInstance>}
+     */
+    createStageInstance(options) {
+        return this.guild.stageInstances.create(this.id, options);
     }
 }
 module.exports = StageChannel;

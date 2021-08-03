@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8,16 +9,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const BaseManager = require('./BaseManager');
+const { Collection } = require('@discordjs/collection');
+const CachedManager = require('./CachedManager');
 const { Error } = require('../errors');
-const Collection = require('../util/Collection');
+const User = require('../structures/User');
 /**
  * Manages API methods for users who reacted to a reaction and stores their cache.
- * @extends {BaseManager}
+ * @extends {CachedManager}
  */
-class ReactionUserManager extends BaseManager {
-    constructor(client, iterable, reaction) {
-        super(client, iterable, { name: 'User' });
+class ReactionUserManager extends CachedManager {
+    constructor(reaction, iterable) {
+        super(reaction.client, User, iterable);
         /**
          * The reaction that this manager belongs to
          * @type {MessageReaction}
@@ -36,7 +38,7 @@ class ReactionUserManager extends BaseManager {
      * @property {Snowflake} [after] Limit fetching users to those with an id greater than the supplied id
      */
     /**
-     * Fetches all the users that gave this reaction. Resolves with a collection of users, mapped by their IDs.
+     * Fetches all the users that gave this reaction. Resolves with a collection of users, mapped by their ids.
      * @param {FetchReactionUsersOptions} [options] Options for fetching the users
      * @returns {Promise<Collection<Snowflake, User>>}
      */
@@ -46,7 +48,7 @@ class ReactionUserManager extends BaseManager {
             const data = yield this.client.api.channels[message.channel.id].messages[message.id].reactions[this.reaction.emoji.identifier].get({ query: { limit, after } });
             const users = new Collection();
             for (const rawUser of data) {
-                const user = this.client.users.add(rawUser);
+                const user = this.client.users._add(rawUser);
                 this.cache.set(user.id, user);
                 users.set(user.id, user);
             }
@@ -59,13 +61,14 @@ class ReactionUserManager extends BaseManager {
      * @returns {Promise<MessageReaction>}
      */
     remove(user = this.client.user) {
-        const userID = this.client.users.resolveID(user);
-        if (!userID)
-            return Promise.reject(new Error('REACTION_RESOLVE_USER'));
-        const message = this.reaction.message;
-        return this.client.api.channels[message.channel.id].messages[message.id].reactions[this.reaction.emoji.identifier][userID === this.client.user.id ? '@me' : userID]
-            .delete()
-            .then(() => this.reaction);
+        return __awaiter(this, void 0, void 0, function* () {
+            const userId = this.client.users.resolveId(user);
+            if (!userId)
+                throw new Error('REACTION_RESOLVE_USER');
+            const message = this.reaction.message;
+            yield this.client.api.channels[message.channel.id].messages[message.id].reactions[this.reaction.emoji.identifier][userId === this.client.user.id ? '@me' : userId].delete();
+            return this.reaction;
+        });
     }
 }
 module.exports = ReactionUserManager;

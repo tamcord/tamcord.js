@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const ClientApplication = require('../../../structures/ClientApplication');
 let ClientUser;
@@ -12,8 +13,8 @@ module.exports = (client, { d: data }, shard) => {
         client.users.cache.set(client.user.id, client.user);
     }
     for (const guild of data.guilds) {
-        guild.shardID = shard.id;
-        client.guilds.add(guild);
+        guild.shardId = shard.id;
+        client.guilds._add(guild);
     }
     if (client.application) {
         client.application._patch(data.application);

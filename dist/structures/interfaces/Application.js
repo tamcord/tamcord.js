@@ -1,4 +1,14 @@
+// @ts-nocheck
 'use strict';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 const { ClientApplicationAssetTypes, Endpoints } = require('../../util/Constants');
 const SnowflakeUtil = require('../../util/SnowflakeUtil');
 const Base = require('../Base');
@@ -15,7 +25,7 @@ class Application extends Base {
     _patch(data) {
         var _a, _b, _c, _d, _e, _f;
         /**
-         * The ID of the application
+         * The application's id
          * @type {Snowflake}
          */
         this.id = data.id;
@@ -74,23 +84,23 @@ class Application extends Base {
     /**
      * Asset data.
      * @typedef {Object} ApplicationAsset
-     * @property {Snowflake} id The asset ID
-     * @property {string} name The asset name
-     * @property {string} type The asset type
+     * @property {Snowflake} id The asset's id
+     * @property {string} name The asset's name
+     * @property {string} type The asset's type
      */
     /**
      * Gets the application's rich presence assets.
      * @returns {Promise<Array<ApplicationAsset>>}
      */
     fetchAssets() {
-        return this.client.api.oauth2
-            .applications(this.id)
-            .assets.get()
-            .then(assets => assets.map(a => ({
-            id: a.id,
-            name: a.name,
-            type: AssetTypes[a.type - 1],
-        })));
+        return __awaiter(this, void 0, void 0, function* () {
+            const assets = yield this.client.api.oauth2.applications(this.id).assets.get();
+            return assets.map(a => ({
+                id: a.id,
+                name: a.name,
+                type: AssetTypes[a.type - 1],
+            }));
+        });
     }
     /**
      * When concatenated with a string, this automatically returns the application's name instead of the

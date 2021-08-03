@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const { browser } = require('./util/Constants');
 let erlpack;

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8,45 +9,44 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const BaseManager = require('./BaseManager');
+const CachedManager = require('./CachedManager');
 const Channel = require('../structures/Channel');
 const { Events, ThreadChannelTypes } = require('../util/Constants');
 /**
  * A manager of channels belonging to a client
- * @extends {BaseManager}
+ * @extends {CachedManager}
  */
-class ChannelManager extends BaseManager {
+class ChannelManager extends CachedManager {
     constructor(client, iterable) {
-        super(client, iterable, Channel);
+        super(client, Channel, iterable);
     }
     /**
      * The cache of Channels
      * @type {Collection<Snowflake, Channel>}
      * @name ChannelManager#cache
      */
-    add(data, guild, cache = true) {
-        var _a, _b;
+    _add(data, guild, { cache = true, allowUnknownGuild = false, fromInteraction = false } = {}) {
+        var _a, _b, _c;
         const existing = this.cache.get(data.id);
         if (existing) {
-            if (existing._patch && cache)
-                existing._patch(data);
-            if (guild)
-                (_a = guild.channels) === null || _a === void 0 ? void 0 : _a.add(existing);
-            if (ThreadChannelTypes.includes(existing.type) && typeof ((_b = existing.parent) === null || _b === void 0 ? void 0 : _b.threads) !== 'undefined') {
-                existing.parent.threads.add(existing);
+            if (cache)
+                existing._patch(data, fromInteraction);
+            (_a = guild === null || guild === void 0 ? void 0 : guild.channels) === null || _a === void 0 ? void 0 : _a._add(existing);
+            if (ThreadChannelTypes.includes(existing.type)) {
+                (_c = (_b = existing.parent) === null || _b === void 0 ? void 0 : _b.threads) === null || _c === void 0 ? void 0 : _c._add(existing);
             }
             return existing;
         }
-        const channel = Channel.create(this.client, data, guild);
+        const channel = Channel.create(this.client, data, guild, { allowUnknownGuild, fromInteraction });
         if (!channel) {
             this.client.emit(Events.DEBUG, `Failed to find guild, or unknown type for channel ${data.id} ${data.type}`);
             return null;
         }
-        if (cache)
+        if (cache && !allowUnknownGuild)
             this.cache.set(channel.id, channel);
         return channel;
     }
-    remove(id) {
+    _remove(id) {
         var _a, _b, _c;
         const channel = this.cache.get(id);
         (_a = channel === null || channel === void 0 ? void 0 : channel.guild) === null || _a === void 0 ? void 0 : _a.channels.cache.delete(id);
@@ -68,17 +68,23 @@ class ChannelManager extends BaseManager {
      * @returns {?Channel}
      */
     /**
-     * Resolves a ChannelResolvable to a channel ID string.
-     * @method resolveID
+     * Resolves a ChannelResolvable to a channel id string.
+     * @method resolveId
      * @memberof ChannelManager
      * @instance
      * @param {ChannelResolvable} channel The channel resolvable to resolve
      * @returns {?Snowflake}
      */
     /**
+     * Options for fetching a channel from discord
+     * @typedef {BaseFetchOptions} FetchChannelOptions
+     * @property {boolean} [allowUnknownGuild=false] Allows the channel to be returned even if the guild is not in cache,
+     * it will not be cached. <warn>Many of the properties and methods on the returned channel will throw errors</warn>
+     */
+    /**
      * Obtains a channel from Discord, or the channel cache if it's already available.
-     * @param {Snowflake} id ID of the channel
-     * @param {BaseFetchOptions} [options] Additional options for this fetch
+     * @param {Snowflake} id The channel's id
+     * @param {FetchChannelOptions} [options] Additional options for this fetch
      * @returns {Promise<?Channel>}
      * @example
      * // Fetch a channel by its id
@@ -86,7 +92,7 @@ class ChannelManager extends BaseManager {
      *   .then(channel => console.log(channel.name))
      *   .catch(console.error);
      */
-    fetch(id, { cache = true, force = false } = {}) {
+    fetch(id, { allowUnknownGuild = false, cache = true, force = false } = {}) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!force) {
                 const existing = this.cache.get(id);
@@ -94,7 +100,7 @@ class ChannelManager extends BaseManager {
                     return existing;
             }
             const data = yield this.client.api.channels(id).get();
-            return this.add(data, null, cache);
+            return this._add(data, null, { cache, allowUnknownGuild });
         });
     }
 }

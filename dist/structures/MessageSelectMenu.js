@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const BaseMessageComponent = require('./BaseMessageComponent');
 const { MessageComponentTypes } = require('../util/Constants');
@@ -9,7 +10,7 @@ const Util = require('../util/Util');
 class MessageSelectMenu extends BaseMessageComponent {
     /**
      * @typedef {BaseMessageComponentOptions} MessageSelectMenuOptions
-     * @property {string} [customID] A unique string to be sent in the interaction when clicked
+     * @property {string} [customId] A unique string to be sent in the interaction when clicked
      * @property {string} [placeholder] Custom placeholder text to display when nothing is selected
      * @property {number} [minValues] The minimum number of selections required
      * @property {number} [maxValues] The maximum number of selections allowed
@@ -45,7 +46,7 @@ class MessageSelectMenu extends BaseMessageComponent {
          * A unique string to be sent in the interaction when clicked
          * @type {?string}
          */
-        this.customID = (_b = (_a = data.custom_id) !== null && _a !== void 0 ? _a : data.customID) !== null && _b !== void 0 ? _b : null;
+        this.customId = (_b = (_a = data.custom_id) !== null && _a !== void 0 ? _a : data.customId) !== null && _b !== void 0 ? _b : null;
         /**
          * Custom placeholder text to display when nothing is selected
          * @type {?string}
@@ -68,17 +69,17 @@ class MessageSelectMenu extends BaseMessageComponent {
         this.options = this.constructor.normalizeOptions((_h = data.options) !== null && _h !== void 0 ? _h : []);
         /**
          * Whether this select menu is currently disabled
-         * @type {?boolean}
+         * @type {boolean}
          */
         this.disabled = (_j = data.disabled) !== null && _j !== void 0 ? _j : false;
     }
     /**
-     * Sets the custom ID of this select menu
-     * @param {string} customID A unique string to be sent in the interaction when clicked
+     * Sets the custom id of this select menu
+     * @param {string} customId A unique string to be sent in the interaction when clicked
      * @returns {MessageSelectMenu}
      */
-    setCustomID(customID) {
-        this.customID = Util.verifyString(customID, RangeError, 'SELECT_MENU_CUSTOM_ID');
+    setCustomId(customId) {
+        this.customId = Util.verifyString(customId, RangeError, 'SELECT_MENU_CUSTOM_ID');
         return this;
     }
     /**
@@ -145,7 +146,7 @@ class MessageSelectMenu extends BaseMessageComponent {
     toJSON() {
         var _a;
         return {
-            custom_id: this.customID,
+            custom_id: this.customId,
             disabled: this.disabled,
             placeholder: this.placeholder,
             min_values: this.minValues,

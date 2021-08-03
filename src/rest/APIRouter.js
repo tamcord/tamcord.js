@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 
 const noop = () => {}; // eslint-disable-line no-empty-function

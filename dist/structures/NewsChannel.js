@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -26,7 +27,7 @@ class NewsChannel extends TextChannel {
      * @param {string} [reason] Reason for creating the webhook
      * @returns {Promise<NewsChannel>}
      * @example
-     * if (channel.type === 'news') {
+     * if (channel.type === 'GUILD_NEWS') {
      *   channel.addFollower('222197033908436994', 'Important announcements')
      *     .then(() => console.log('Added follower'))
      *     .catch(console.error);
@@ -34,10 +35,10 @@ class NewsChannel extends TextChannel {
      */
     addFollower(channel, reason) {
         return __awaiter(this, void 0, void 0, function* () {
-            const channelID = this.guild.channels.resolveID(channel);
-            if (!channelID)
+            const channelId = this.guild.channels.resolveId(channel);
+            if (!channelId)
                 throw new Error('GUILD_CHANNEL_RESOLVE');
-            yield this.client.api.channels(this.id).followers.post({ data: { webhook_channel_id: channelID }, reason });
+            yield this.client.api.channels(this.id).followers.post({ data: { webhook_channel_id: channelId }, reason });
             return this;
         });
     }

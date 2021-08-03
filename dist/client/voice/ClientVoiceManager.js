@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const { Events } = require('../../util/Constants');
 /**
@@ -13,14 +14,14 @@ class ClientVoiceManager {
          */
         Object.defineProperty(this, 'client', { value: client });
         /**
-         * Maps guild IDs to voice adapters created for use with @discordjs/voice.
+         * Maps guild ids to voice adapters created for use with @discordjs/voice.
          * @type {Map<Snowflake, Object>}
          */
         this.adapters = new Map();
-        client.on(Events.SHARD_DISCONNECT, (_, shardID) => {
+        client.on(Events.SHARD_DISCONNECT, (_, shardId) => {
             var _a;
-            for (const [guildID, adapter] of this.adapters.entries()) {
-                if (((_a = client.guilds.cache.get(guildID)) === null || _a === void 0 ? void 0 : _a.shardID) === shardID) {
+            for (const [guildId, adapter] of this.adapters.entries()) {
+                if (((_a = client.guilds.cache.get(guildId)) === null || _a === void 0 ? void 0 : _a.shardId) === shardId) {
                     adapter.destroy();
                 }
             }

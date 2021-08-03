@@ -1,7 +1,8 @@
+// @ts-nocheck
 'use strict';
+const { Collection } = require('@discordjs/collection');
 const Base = require('./Base');
 const TeamMember = require('./TeamMember');
-const Collection = require('../util/Collection');
 const SnowflakeUtil = require('../util/SnowflakeUtil');
 /**
  * Represents a Client OAuth2 Application Team.
@@ -13,8 +14,9 @@ class Team extends Base {
         this._patch(data);
     }
     _patch(data) {
+        var _a, _b;
         /**
-         * The ID of the Team
+         * The Team's id
          * @type {Snowflake}
          */
         this.id = data.id;
@@ -27,12 +29,12 @@ class Team extends Base {
          * The Team's icon hash
          * @type {?string}
          */
-        this.icon = data.icon || null;
+        this.icon = (_a = data.icon) !== null && _a !== void 0 ? _a : null;
         /**
          * The Team's owner id
-         * @type {?string}
+         * @type {?Snowflake}
          */
-        this.ownerID = data.owner_user_id || null;
+        this.ownerId = (_b = data.owner_user_id) !== null && _b !== void 0 ? _b : null;
         /**
          * The Team's members
          * @type {Collection<Snowflake, TeamMember>}
@@ -49,7 +51,8 @@ class Team extends Base {
      * @readonly
      */
     get owner() {
-        return this.members.get(this.ownerID) || null;
+        var _a;
+        return (_a = this.members.get(this.ownerId)) !== null && _a !== void 0 ? _a : null;
     }
     /**
      * The timestamp the team was created at

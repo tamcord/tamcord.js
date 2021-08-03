@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const Emoji = require('./Emoji');
 const Util = require('../util/Util');

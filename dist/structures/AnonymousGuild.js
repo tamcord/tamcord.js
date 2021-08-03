@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const BaseGuild = require('./BaseGuild');
 const { VerificationLevels, NSFWLevels } = require('../util/Constants');

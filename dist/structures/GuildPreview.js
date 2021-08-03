@@ -1,7 +1,18 @@
+// @ts-nocheck
 'use strict';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+const { Collection } = require('@discordjs/collection');
 const Base = require('./Base');
 const GuildPreviewEmoji = require('./GuildPreviewEmoji');
-const Collection = require('../util/Collection');
+const SnowflakeUtil = require('../util/SnowflakeUtil');
 /**
  * Represents the data about the guild any bot can preview, connected to the specified guild.
  * @extends {Base}
@@ -19,6 +30,7 @@ class GuildPreview extends Base {
      * @private
      */
     _patch(data) {
+        var _a;
         /**
          * The id of this guild
          * @type {string}
@@ -63,7 +75,7 @@ class GuildPreview extends Base {
          * The description for this guild
          * @type {?string}
          */
-        this.description = data.description || null;
+        this.description = (_a = data.description) !== null && _a !== void 0 ? _a : null;
         if (!this.emojis) {
             /**
              * Collection of emojis belonging to this guild
@@ -79,14 +91,28 @@ class GuildPreview extends Base {
         }
     }
     /**
+     * The timestamp this guild was created at
+     * @type {number}
+     * @readonly
+     */
+    get createdTimestamp() {
+        return SnowflakeUtil.deconstruct(this.id).timestamp;
+    }
+    /**
+     * The time this guild was created at
+     * @type {Date}
+     * @readonly
+     */
+    get createdAt() {
+        return new Date(this.createdTimestamp);
+    }
+    /**
      * The URL to this guild's splash.
      * @param {StaticImageURLOptions} [options={}] Options for the Image URL
      * @returns {?string}
      */
     splashURL({ format, size } = {}) {
-        if (!this.splash)
-            return null;
-        return this.client.rest.cdn.Splash(this.id, this.splash, format, size);
+        return this.splash && this.client.rest.cdn.Splash(this.id, this.splash, format, size);
     }
     /**
      * The URL to this guild's discovery splash.
@@ -94,9 +120,7 @@ class GuildPreview extends Base {
      * @returns {?string}
      */
     discoverySplashURL({ format, size } = {}) {
-        if (!this.discoverySplash)
-            return null;
-        return this.client.rest.cdn.DiscoverySplash(this.id, this.discoverySplash, format, size);
+        return this.discoverySplash && this.client.rest.cdn.DiscoverySplash(this.id, this.discoverySplash, format, size);
     }
     /**
      * The URL to this guild's icon.
@@ -104,19 +128,15 @@ class GuildPreview extends Base {
      * @returns {?string}
      */
     iconURL({ format, size, dynamic } = {}) {
-        if (!this.icon)
-            return null;
-        return this.client.rest.cdn.Icon(this.id, this.icon, format, size, dynamic);
+        return this.icon && this.client.rest.cdn.Icon(this.id, this.icon, format, size, dynamic);
     }
     /**
      * Fetches this guild.
      * @returns {Promise<GuildPreview>}
      */
     fetch() {
-        return this.client.api
-            .guilds(this.id)
-            .preview.get()
-            .then(data => {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield this.client.api.guilds(this.id).preview.get();
             this._patch(data);
             return this;
         });

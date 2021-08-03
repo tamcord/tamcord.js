@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const { RangeError } = require('../errors');
 const Util = require('../util/Util');
@@ -10,6 +11,12 @@ class MessageEmbed {
      * @kind constructor
      * @memberof MessageEmbed
      * @param {MessageEmbed|MessageEmbedOptions} [data={}] MessageEmbed to clone or raw embed data
+     */
+    /**
+     * A `Partial` object is a representation of any existing object.
+     * This object contains between 0 and all of the original objects parameters.
+     * This is true regardless of whether the parameters are optional in the base object.
+     * @typedef {Object} Partial
      */
     /**
      * Represents the possible options for a MessageEmbed
@@ -30,6 +37,7 @@ class MessageEmbed {
         this.setup(data, skipValidation);
     }
     setup(data, skipValidation) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
         /**
          * The type of this embed, either:
          * * `rich` - a rich embed
@@ -41,22 +49,22 @@ class MessageEmbed {
          * @type {string}
          * @deprecated
          */
-        this.type = data.type || 'rich';
+        this.type = (_a = data.type) !== null && _a !== void 0 ? _a : 'rich';
         /**
          * The title of this embed
          * @type {?string}
          */
-        this.title = 'title' in data ? data.title : null;
+        this.title = (_b = data.title) !== null && _b !== void 0 ? _b : null;
         /**
          * The description of this embed
          * @type {?string}
          */
-        this.description = 'description' in data ? data.description : null;
+        this.description = (_c = data.description) !== null && _c !== void 0 ? _c : null;
         /**
          * The URL of this embed
          * @type {?string}
          */
-        this.url = 'url' in data ? data.url : null;
+        this.url = (_d = data.url) !== null && _d !== void 0 ? _d : null;
         /**
          * The color of this embed
          * @type {?number}
@@ -97,7 +105,7 @@ class MessageEmbed {
         this.thumbnail = data.thumbnail
             ? {
                 url: data.thumbnail.url,
-                proxyURL: data.thumbnail.proxyURL || data.thumbnail.proxy_url,
+                proxyURL: (_e = data.thumbnail.proxyURL) !== null && _e !== void 0 ? _e : data.thumbnail.proxy_url,
                 height: data.thumbnail.height,
                 width: data.thumbnail.width,
             }
@@ -117,7 +125,7 @@ class MessageEmbed {
         this.image = data.image
             ? {
                 url: data.image.url,
-                proxyURL: data.image.proxyURL || data.image.proxy_url,
+                proxyURL: (_f = data.image.proxyURL) !== null && _f !== void 0 ? _f : data.image.proxy_url,
                 height: data.image.height,
                 width: data.image.width,
             }
@@ -138,7 +146,7 @@ class MessageEmbed {
         this.video = data.video
             ? {
                 url: data.video.url,
-                proxyURL: data.video.proxyURL || data.video.proxy_url,
+                proxyURL: (_g = data.video.proxyURL) !== null && _g !== void 0 ? _g : data.video.proxy_url,
                 height: data.video.height,
                 width: data.video.width,
             }
@@ -159,8 +167,8 @@ class MessageEmbed {
             ? {
                 name: data.author.name,
                 url: data.author.url,
-                iconURL: data.author.iconURL || data.author.icon_url,
-                proxyIconURL: data.author.proxyIconURL || data.author.proxy_icon_url,
+                iconURL: (_h = data.author.iconURL) !== null && _h !== void 0 ? _h : data.author.icon_url,
+                proxyIconURL: (_j = data.author.proxyIconURL) !== null && _j !== void 0 ? _j : data.author.proxy_icon_url,
             }
             : null;
         /**
@@ -193,8 +201,8 @@ class MessageEmbed {
         this.footer = data.footer
             ? {
                 text: data.footer.text,
-                iconURL: data.footer.iconURL || data.footer.icon_url,
-                proxyIconURL: data.footer.proxyIconURL || data.footer.proxy_icon_url,
+                iconURL: (_k = data.footer.iconURL) !== null && _k !== void 0 ? _k : data.footer.icon_url,
+                proxyIconURL: (_l = data.footer.proxyIconURL) !== null && _l !== void 0 ? _l : data.footer.proxy_icon_url,
             }
             : null;
     }
@@ -257,6 +265,15 @@ class MessageEmbed {
      */
     spliceFields(index, deleteCount, ...fields) {
         this.fields.splice(index, deleteCount, ...this.constructor.normalizeFields(...fields));
+        return this;
+    }
+    /**
+     * Sets the embed's fields (max 25).
+     * @param {...EmbedFieldData|EmbedFieldData[]} fields The fields to set
+     * @returns {MessageEmbed}
+     */
+    setFields(...fields) {
+        this.spliceFields(0, this.fields.length, fields);
         return this;
     }
     /**
@@ -355,24 +372,20 @@ class MessageEmbed {
             type: 'rich',
             description: this.description,
             url: this.url,
-            timestamp: this.timestamp ? new Date(this.timestamp) : null,
+            timestamp: this.timestamp && new Date(this.timestamp),
             color: this.color,
             fields: this.fields,
             thumbnail: this.thumbnail,
             image: this.image,
-            author: this.author
-                ? {
-                    name: this.author.name,
-                    url: this.author.url,
-                    icon_url: this.author.iconURL,
-                }
-                : null,
-            footer: this.footer
-                ? {
-                    text: this.footer.text,
-                    icon_url: this.footer.iconURL,
-                }
-                : null,
+            author: this.author && {
+                name: this.author.name,
+                url: this.author.url,
+                icon_url: this.author.iconURL,
+            },
+            footer: this.footer && {
+                text: this.footer.text,
+                icon_url: this.footer.iconURL,
+            },
         };
     }
     /**
@@ -403,7 +416,7 @@ class MessageEmbed {
     static normalizeFields(...fields) {
         return fields
             .flat(2)
-            .map(field => this.normalizeField(field && field.name, field && field.value, field && typeof field.inline === 'boolean' ? field.inline : false));
+            .map(field => this.normalizeField(field.name, field.value, typeof field.inline === 'boolean' ? field.inline : false));
     }
 }
 module.exports = MessageEmbed;

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const Collector = require('./interfaces/Collector');
 const { Events } = require('../util/Constants');
@@ -80,6 +81,11 @@ class MessageCollector extends Collector {
          */
         return message.channel.id === this.channel.id ? message.id : null;
     }
+    /**
+     * The reason this collector has ended with, or null if it hasn't ended yet
+     * @type {?string}
+     * @readonly
+     */
     get endReason() {
         if (this.options.max && this.collected.size >= this.options.max)
             return 'limit';
@@ -105,7 +111,8 @@ class MessageCollector extends Collector {
      * @returns {void}
      */
     _handleGuildDeletion(guild) {
-        if (this.channel.guild && guild.id === this.channel.guild.id) {
+        var _a;
+        if (guild.id === ((_a = this.channel.guild) === null || _a === void 0 ? void 0 : _a.id)) {
             this.stop('guildDelete');
         }
     }

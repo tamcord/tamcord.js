@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 /**
  * Represents an error from the Discord API.
@@ -5,11 +6,11 @@
  */
 class DiscordAPIError extends Error {
     constructor(error, status, request) {
-        var _a;
+        var _a, _b, _c;
         super();
-        const flattened = this.constructor.flattenErrors(error.errors || error).join('\n');
+        const flattened = this.constructor.flattenErrors((_a = error.errors) !== null && _a !== void 0 ? _a : error).join('\n');
         this.name = 'DiscordAPIError';
-        this.message = error.message && flattened ? `${error.message}\n${flattened}` : error.message || flattened;
+        this.message = error.message && flattened ? `${error.message}\n${flattened}` : (_b = error.message) !== null && _b !== void 0 ? _b : flattened;
         /**
          * The HTTP method used for the request
          * @type {string}
@@ -36,7 +37,7 @@ class DiscordAPIError extends Error {
          */
         this.requestData = {
             json: request.options.data,
-            files: (_a = request.options.files) !== null && _a !== void 0 ? _a : [],
+            files: (_c = request.options.files) !== null && _c !== void 0 ? _c : [],
         };
     }
     /**
@@ -47,6 +48,7 @@ class DiscordAPIError extends Error {
      * @private
      */
     static flattenErrors(obj, key = '') {
+        var _a;
         let messages = [];
         for (const [k, v] of Object.entries(obj)) {
             if (k === 'message')
@@ -55,7 +57,7 @@ class DiscordAPIError extends Error {
             if (v._errors) {
                 messages.push(`${newKey}: ${v._errors.map(e => e.message).join(' ')}`);
             }
-            else if (v.code || v.message) {
+            else if ((_a = v.code) !== null && _a !== void 0 ? _a : v.message) {
                 messages.push(`${v.code ? `${v.code}: ` : ''}${v.message}`.trim());
             }
             else if (typeof v === 'string') {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const { TypeError } = require('../errors');
 const { MessageComponentTypes, Events } = require('../util/Constants');
@@ -46,11 +47,10 @@ class BaseMessageComponent {
      * Constructs a MessageComponent based on the type of the incoming data
      * @param {MessageComponentOptions} data Data for a MessageComponent
      * @param {Client|WebhookClient} [client] Client constructing this component
-     * @param {boolean} [skipValidation=false] Whether or not to validate the component type
      * @returns {?MessageComponent}
      * @private
      */
-    static create(data, client, skipValidation = false) {
+    static create(data, client) {
         let component;
         let type = data.type;
         if (typeof type === 'string')
@@ -58,7 +58,7 @@ class BaseMessageComponent {
         switch (type) {
             case MessageComponentTypes.ACTION_ROW: {
                 const MessageActionRow = require('./MessageActionRow');
-                component = new MessageActionRow(data);
+                component = new MessageActionRow(data, client);
                 break;
             }
             case MessageComponentTypes.BUTTON: {
@@ -75,7 +75,7 @@ class BaseMessageComponent {
                 if (client) {
                     client.emit(Events.DEBUG, `[BaseMessageComponent] Received component with unknown type: ${data.type}`);
                 }
-                else if (!skipValidation) {
+                else {
                     throw new TypeError('INVALID_TYPE', 'data.type', 'valid MessageComponentType');
                 }
         }

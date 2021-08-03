@@ -1,9 +1,10 @@
+// @ts-nocheck
 'use strict';
 const Action = require('./Action');
 class GuildEmojisUpdateAction extends Action {
     handle(data) {
         const guild = this.client.guilds.cache.get(data.guild_id);
-        if (!guild || !guild.emojis)
+        if (!(guild === null || guild === void 0 ? void 0 : guild.emojis))
             return;
         const deletions = new Map(guild.emojis.cache);
         for (const emoji of data.emojis) {

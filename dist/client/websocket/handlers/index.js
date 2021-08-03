@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const { WSEvents } = require('../../../util/Constants');
 const handlers = {};

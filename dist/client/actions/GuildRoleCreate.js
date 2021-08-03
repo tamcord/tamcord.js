@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const Action = require('./Action');
 const { Events } = require('../../util/Constants');
@@ -8,7 +9,7 @@ class GuildRoleCreate extends Action {
         let role;
         if (guild) {
             const already = guild.roles.cache.has(data.role.id);
-            role = guild.roles.add(data.role);
+            role = guild.roles._add(data.role);
             /**
              * Emitted whenever a role is created.
              * @event Client#roleCreate

@@ -1,5 +1,7 @@
+// @ts-nocheck
 'use strict';
 const Base = require('./Base');
+const ApplicationCommandPermissionsManager = require('../managers/ApplicationCommandPermissionsManager');
 const { ApplicationCommandOptionTypes } = require('../util/Constants');
 const SnowflakeUtil = require('../util/SnowflakeUtil');
 /**
@@ -7,18 +9,35 @@ const SnowflakeUtil = require('../util/SnowflakeUtil');
  * @extends {Base}
  */
 class ApplicationCommand extends Base {
-    constructor(client, data, guild) {
+    constructor(client, data, guild, guildId) {
+        var _a, _b;
         super(client);
         /**
-         * The ID of this command
+         * The command's id
          * @type {Snowflake}
          */
         this.id = data.id;
+        /**
+         * The parent application's id
+         * @type {Snowflake}
+         */
+        this.applicationId = data.application_id;
         /**
          * The guild this command is part of
          * @type {?Guild}
          */
         this.guild = guild !== null && guild !== void 0 ? guild : null;
+        /**
+         * The guild's id this command is part of, this may be non-null when `guild` is `null` if the command
+         * was fetched from the `ApplicationCommandManager`
+         * @type {?Snowflake}
+         */
+        this.guildId = (_b = (_a = guild === null || guild === void 0 ? void 0 : guild.id) !== null && _a !== void 0 ? _a : guildId) !== null && _b !== void 0 ? _b : null;
+        /**
+         * The manager for permissions of this command on its guild or arbitrary guilds when the command is global
+         * @type {ApplicationCommandPermissionsManager}
+         */
+        this.permissions = new ApplicationCommandPermissionsManager(this);
         this._patch(data);
     }
     _patch(data) {
@@ -100,7 +119,7 @@ class ApplicationCommand extends Base {
      *   .catch(console.error);
      */
     edit(data) {
-        return this.manager.edit(this, data);
+        return this.manager.edit(this, data, this.guildId);
     }
     /**
      * Deletes this command.
@@ -112,58 +131,7 @@ class ApplicationCommand extends Base {
      *   .catch(console.error);
      */
     delete() {
-        return this.manager.delete(this);
-    }
-    /**
-     * Data for setting the permissions of an application command.
-     * @typedef {Object} ApplicationCommandPermissionData
-     * @property {Snowflake} id The ID of the role or user
-     * @property {ApplicationCommandPermissionType|number} type Whether this permission is for a role or a user
-     * @property {boolean} permission Whether the role or user has the permission to use this command
-     */
-    /**
-     * The object returned when fetching permissions for an application command.
-     * @typedef {Object} ApplicationCommandPermissions
-     * @property {Snowflake} id The ID of the role or user
-     * @property {ApplicationCommandPermissionType} type Whether this permission is for a role or a user
-     * @property {boolean} permission Whether the role or user has the permission to use this command
-     */
-    /**
-     * Fetches the permissions for this command.
-     * <warn>You must specify guildID if this command is handled by a {@link ApplicationCommandManager},
-     * including commands fetched for arbitrary guilds from it, otherwise it is ignored.</warn>
-     * @param {Snowflake} [guildID] ID for the guild to fetch permissions for if this is a global command
-     * @returns {Promise<ApplicationCommandPermissions[]>}
-     * @example
-     * // Fetch permissions for this command
-     * command.fetchPermissions()
-     *   .then(perms => console.log(`Fetched permissions for ${perms.length} users`))
-     *   .catch(console.error);
-     */
-    fetchPermissions(guildID) {
-        return this.manager.fetchPermissions(this, guildID);
-    }
-    /**
-     * Sets the permissions for this command.
-     * <warn>You must specify guildID if this command is handled by a {@link ApplicationCommandManager},
-     * including commands fetched for arbitrary guilds from it, otherwise it is ignored.</warn>
-     * @param {ApplicationCommandPermissionData[]} permissions The new permissions for the command
-     * @param {Snowflake} [guildID] ID for the guild to fetch permissions for if this is a global command
-     * @returns {Promise<ApplicationCommandPermissions[]>}
-     * @example
-     * // Set the permissions for this command
-     * command.setPermissions([
-     *   {
-     *     id: '876543210987654321',
-     *     type: 'USER',
-     *     permission: false,
-     *   },
-     * ])
-     *   .then(console.log)
-     *   .catch(console.error);
-     */
-    setPermissions(permissions, guildID) {
-        return this.manager.setPermissions(this, permissions, guildID);
+        return this.manager.delete(this, this.guildId);
     }
     /**
      * An option for an application command or subcommand.

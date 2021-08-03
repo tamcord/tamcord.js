@@ -1,6 +1,6 @@
+// @ts-nocheck
 'use strict';
 const Action = require('./Action');
-const Invite = require('../../structures/Invite');
 const { Events } = require('../../util/Constants');
 class InviteCreateAction extends Action {
     handle(data) {
@@ -10,7 +10,7 @@ class InviteCreateAction extends Action {
         if (!channel)
             return false;
         const inviteData = Object.assign(data, { channel, guild });
-        const invite = new Invite(client, inviteData);
+        const invite = guild.invites._add(inviteData);
         /**
          * Emitted when an invite is created.
          * <info> This event only triggers if the client has `MANAGE_GUILD` permissions for the guild,

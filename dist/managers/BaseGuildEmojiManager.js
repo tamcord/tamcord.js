@@ -1,15 +1,16 @@
+// @ts-nocheck
 'use strict';
-const BaseManager = require('./BaseManager');
+const CachedManager = require('./CachedManager');
 const GuildEmoji = require('../structures/GuildEmoji');
 const ReactionEmoji = require('../structures/ReactionEmoji');
 const { parseEmoji } = require('../util/Util');
 /**
  * Holds methods to resolve GuildEmojis and stores their cache.
- * @extends {BaseManager}
+ * @extends {CachedManager}
  */
-class BaseGuildEmojiManager extends BaseManager {
+class BaseGuildEmojiManager extends CachedManager {
     constructor(client, iterable) {
-        super(client, iterable, GuildEmoji);
+        super(client, GuildEmoji, iterable);
     }
     /**
      * The cache of GuildEmojis
@@ -18,7 +19,7 @@ class BaseGuildEmojiManager extends BaseManager {
      */
     /**
      * Data that can be resolved into a GuildEmoji object. This can be:
-     * * A custom emoji ID
+     * * A custom emoji identifier
      * * A GuildEmoji object
      * * A ReactionEmoji object
      * @typedef {Snowflake|GuildEmoji|ReactionEmoji} EmojiResolvable
@@ -34,14 +35,14 @@ class BaseGuildEmojiManager extends BaseManager {
         return super.resolve(emoji);
     }
     /**
-     * Resolves an EmojiResolvable to an Emoji ID string.
+     * Resolves an EmojiResolvable to an Emoji id string.
      * @param {EmojiResolvable} emoji The Emoji resolvable to identify
      * @returns {?Snowflake}
      */
-    resolveID(emoji) {
+    resolveId(emoji) {
         if (emoji instanceof ReactionEmoji)
             return emoji.id;
-        return super.resolveID(emoji);
+        return super.resolveId(emoji);
     }
     /**
      * Data that can be resolved to give an emoji identifier. This can be:
@@ -63,7 +64,7 @@ class BaseGuildEmojiManager extends BaseManager {
             return emoji.identifier;
         if (typeof emoji === 'string') {
             const res = parseEmoji(emoji);
-            if (res && res.name.length) {
+            if (res === null || res === void 0 ? void 0 : res.name.length) {
                 emoji = `${res.animated ? 'a:' : ''}${res.name}${res.id ? `:${res.id}` : ''}`;
             }
             if (!emoji.includes('%'))

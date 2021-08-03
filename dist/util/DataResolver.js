@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -27,10 +28,7 @@ const Util = require('../util/Util');
  * The DataResolver identifies different objects and tries to resolve a specific piece of information from them.
  * @private
  */
-class DataResolver {
-    constructor() {
-        throw new Error(`The ${this.constructor.name} class may not be instantiated.`);
-    }
+class DataResolver extends null {
     /**
      * Data that can be resolved to give an invite code. This can be:
      * * An invite code

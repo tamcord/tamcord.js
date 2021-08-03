@@ -1,17 +1,26 @@
+// @ts-nocheck
 'use strict';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 const { parse } = require('path');
+const { Collection } = require('@discordjs/collection');
 const fetch = require('node-fetch');
-const { Colors, DefaultOptions, Endpoints } = require('./Constants');
+const { Colors, Endpoints } = require('./Constants');
+const Options = require('./Options');
 const { Error: DiscordError, RangeError, TypeError } = require('../errors');
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 const isObject = d => typeof d === 'object' && d !== null;
 /**
- * Contains various general-purpose utility methods. These functions are also available on the base `Discord` object.
+ * Contains various general-purpose utility methods.
  */
-class Util {
-    constructor() {
-        throw new Error(`The ${this.constructor.name} class may not be instantiated.`);
-    }
+class Util extends null {
     /**
      * Flatten an object. Any properties that are collections will get converted to an array of keys.
      * @param {Object} obj The object to flatten.
@@ -34,10 +43,10 @@ class Util {
             const elemIsObj = isObject(element);
             const valueOf = elemIsObj && typeof element.valueOf === 'function' ? element.valueOf() : null;
             // If it's a Collection, make the array of keys
-            if (element instanceof require('./Collection'))
+            if (element instanceof Collection)
                 out[newProp] = Array.from(element.keys());
             // If the valueOf is a Collection, use its array of keys
-            else if (valueOf instanceof require('./Collection'))
+            else if (valueOf instanceof Collection)
                 out[newProp] = Array.from(valueOf.keys());
             // If it's an array, flatten each element
             else if (Array.isArray(element))
@@ -51,6 +60,15 @@ class Util {
         }
         return out;
     }
+    /**
+     * Options for splitting a message.
+     * @typedef {Object} SplitOptions
+     * @property {number} [maxLength=2000] Maximum character length per message piece
+     * @property {string|string[]|RegExp|RegExp[]} [char='\n'] Character(s) or Regex(s) to split the message with,
+     * an array can be used to split multiple times
+     * @property {string} [prepend=''] Text to prepend to every piece except the first
+     * @property {string} [append=''] Text to append to every piece except the last
+     */
     /**
      * Splits a string into multiple chunks at a designated character that do not exceed a specific length.
      * @param {string} text Content to split
@@ -66,10 +84,10 @@ class Util {
             while (char.length > 0 && splitText.some(elem => elem.length > maxLength)) {
                 const currentChar = char.shift();
                 if (currentChar instanceof RegExp) {
-                    splitText = splitText.map(chunk => chunk.match(currentChar));
+                    splitText = splitText.flatMap(chunk => chunk.match(currentChar));
                 }
                 else {
-                    splitText = splitText.map(chunk => chunk.split(currentChar));
+                    splitText = splitText.flatMap(chunk => chunk.split(currentChar));
                 }
             }
         }
@@ -238,45 +256,51 @@ class Util {
         return text.replace(/\|\|/g, '\\|\\|');
     }
     /**
+     * @typedef {Object} FetchRecommendedShardsOptions
+     * @property {number} [guildsPerShard=1000] Number of guilds assigned per shard
+     * @property {number} [multipleOf=1] The multiple the shard count should round up to. (16 for large bot sharding)
+     */
+    /**
      * Gets the recommended shard count from Discord.
      * @param {string} token Discord auth token
-     * @param {number} [guildsPerShard=1000] Number of guilds per shard
+     * @param {FetchRecommendedShardsOptions} [options] Options for fetching the recommended shard count
      * @returns {Promise<number>} The recommended number of shards
      */
-    static fetchRecommendedShards(token, guildsPerShard = 1000) {
-        if (!token)
-            throw new DiscordError('TOKEN_MISSING');
-        return fetch(`${DefaultOptions.http.api}/v${DefaultOptions.http.version}${Endpoints.botGateway}`, {
-            method: 'GET',
-            headers: { Authorization: `Bot ${token.replace(/^Bot\s*/i, '')}` },
-        })
-            .then(res => {
-            if (res.ok)
-                return res.json();
-            if (res.status === 401)
-                throw new DiscordError('TOKEN_INVALID');
-            throw res;
-        })
-            .then(data => data.shards * (1000 / guildsPerShard));
+    static fetchRecommendedShards(token, { guildsPerShard = 1000, multipleOf = 1 } = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!token)
+                throw new DiscordError('TOKEN_MISSING');
+            const defaults = Options.createDefault();
+            const response = yield fetch(`${defaults.http.api}/v${defaults.http.version}${Endpoints.botGateway}`, {
+                method: 'GET',
+                headers: { Authorization: `Bot ${token.replace(/^Bot\s*/i, '')}` },
+            });
+            if (!response.ok) {
+                if (response.status === 401)
+                    throw new DiscordError('TOKEN_INVALID');
+                throw response;
+            }
+            const { shards } = yield response.json();
+            return Math.ceil((shards * (1000 / guildsPerShard)) / multipleOf) * multipleOf;
+        });
     }
     /**
      * Parses emoji info out of a string. The string must be one of:
-     * * A UTF-8 emoji (no ID)
-     * * A URL-encoded UTF-8 emoji (no ID)
+     * * A UTF-8 emoji (no id)
+     * * A URL-encoded UTF-8 emoji (no id)
      * * A Discord custom emoji (`<:name:id>` or `<a:name:id>`)
      * @param {string} text Emoji string to parse
      * @returns {APIEmoji} Object with `animated`, `name`, and `id` properties
      * @private
      */
     static parseEmoji(text) {
+        var _a;
         if (text.includes('%'))
             text = decodeURIComponent(text);
         if (!text.includes(':'))
             return { animated: false, name: text, id: null };
-        const m = text.match(/<?(?:(a):)?(\w{2,32}):(\d{17,19})?>?/);
-        if (!m)
-            return null;
-        return { animated: Boolean(m[1]), name: m[2], id: m[3] || null };
+        const match = text.match(/<?(?:(a):)?(\w{2,32}):(\d{17,19})?>?/);
+        return match && { animated: Boolean(match[1]), name: match[2], id: (_a = match[3]) !== null && _a !== void 0 ? _a : null };
     }
     /**
      * Resolves a partial emoji object from an {@link EmojiIdentifierResolvable}, without checking a Client.
@@ -433,12 +457,13 @@ class Util {
      * @returns {number} A color
      */
     static resolveColor(color) {
+        var _a;
         if (typeof color === 'string') {
             if (color === 'RANDOM')
                 return Math.floor(Math.random() * (0xffffff + 1));
             if (color === 'DEFAULT')
                 return 0;
-            color = Colors[color] || parseInt(color.replace('#', ''), 16);
+            color = (_a = Colors[color]) !== null && _a !== void 0 ? _a : parseInt(color.replace('#', ''), 16);
         }
         else if (Array.isArray(color)) {
             color = (color[0] << 16) + (color[1] << 8) + color[2];
@@ -450,7 +475,7 @@ class Util {
         return color;
     }
     /**
-     * Sorts by Discord's position and ID.
+     * Sorts by Discord's position and id.
      * @param  {Collection} collection Collection of objects to sort
      * @returns {Collection}
      */
@@ -471,10 +496,13 @@ class Util {
      * @private
      */
     static setPosition(item, position, relative, sorted, route, reason) {
-        let updatedItems = sorted.array();
-        Util.moveElementInArray(updatedItems, item, position, relative);
-        updatedItems = updatedItems.map((r, i) => ({ id: r.id, position: i }));
-        return route.patch({ data: updatedItems, reason }).then(() => updatedItems);
+        return __awaiter(this, void 0, void 0, function* () {
+            let updatedItems = [...sorted.values()];
+            Util.moveElementInArray(updatedItems, item, position, relative);
+            updatedItems = updatedItems.map((r, i) => ({ id: r.id, position: i }));
+            yield route.patch({ data: updatedItems, reason });
+            return updatedItems;
+        });
     }
     /**
      * Alternative to Node's `path.basename`, removing query string after the extension if it exists.
@@ -484,7 +512,7 @@ class Util {
      * @private
      */
     static basename(path, ext) {
-        let res = parse(path);
+        const res = parse(path);
         return ext && res.ext.startsWith(ext) ? res.name : res.base.split('?')[0];
     }
     /**
@@ -513,7 +541,7 @@ class Util {
      * @returns {Snowflake}
      * @private
      */
-    static binaryToID(num) {
+    static binaryToId(num) {
         let dec = '';
         while (num.length > 50) {
             const high = parseInt(num.slice(0, -32), 2);
@@ -550,7 +578,7 @@ class Util {
         str = str
             .replace(/<@!?[0-9]+>/g, input => {
             const id = input.replace(/<|!|>|@/g, '');
-            if (channel.type === 'dm') {
+            if (channel.type === 'DM') {
                 const user = channel.client.users.cache.get(id);
                 return user ? Util.removeMentions(`@${user.username}`) : input;
             }
@@ -568,7 +596,7 @@ class Util {
             return mentionedChannel ? `#${mentionedChannel.name}` : input;
         })
             .replace(/<@&[0-9]+>/g, input => {
-            if (channel.type === 'dm')
+            if (channel.type === 'DM')
                 return input;
             const role = channel.guild.roles.cache.get(input.replace(/<|@|>|&/g, ''));
             return role ? `@${role.name}` : input;

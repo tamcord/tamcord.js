@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const Util = require('../util/Util');
 /**
@@ -40,9 +41,9 @@ class MessageAttachment {
         return this;
     }
     _patch(data) {
-        var _a;
+        var _a, _b, _c;
         /**
-         * The ID of this attachment
+         * The attachment's id
          * @type {Snowflake}
          */
         this.id = data.id;
@@ -65,17 +66,17 @@ class MessageAttachment {
          * The height of this attachment (if an image or video)
          * @type {?number}
          */
-        this.height = typeof data.height !== 'undefined' ? data.height : null;
+        this.height = (_a = data.height) !== null && _a !== void 0 ? _a : null;
         /**
          * The width of this attachment (if an image or video)
          * @type {?number}
          */
-        this.width = typeof data.width !== 'undefined' ? data.width : null;
+        this.width = (_b = data.width) !== null && _b !== void 0 ? _b : null;
         /**
          * This media type of this attachment
          * @type {?string}
          */
-        this.contentType = (_a = data.content_type) !== null && _a !== void 0 ? _a : null;
+        this.contentType = (_c = data.content_type) !== null && _c !== void 0 ? _c : null;
     }
     /**
      * Whether or not this attachment has been marked as a spoiler

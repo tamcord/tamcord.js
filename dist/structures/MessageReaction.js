@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -43,7 +44,7 @@ class MessageReaction {
          * A manager of the users that have given this reaction
          * @type {ReactionUserManager}
          */
-        this.users = new ReactionUserManager(client, undefined, this);
+        this.users = new ReactionUserManager(this);
         this._emoji = new ReactionEmoji(this, data.emoji);
         this._patch(data);
     }
@@ -105,16 +106,17 @@ class MessageReaction {
      * @returns {Promise<MessageReaction>}
      */
     fetch() {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const message = yield this.message.fetch();
-            const existing = message.reactions.cache.get(this.emoji.id || this.emoji.name);
+            const existing = message.reactions.cache.get((_a = this.emoji.id) !== null && _a !== void 0 ? _a : this.emoji.name);
             // The reaction won't get set when it has been completely removed
-            this._patch(existing || { count: 0 });
+            this._patch(existing !== null && existing !== void 0 ? existing : { count: 0 });
             return this;
         });
     }
     toJSON() {
-        return Util.flatten(this, { emoji: 'emojiID', message: 'messageID' });
+        return Util.flatten(this, { emoji: 'emojiId', message: 'messageId' });
     }
     _add(user) {
         if (this.partial)
@@ -126,6 +128,7 @@ class MessageReaction {
             this.me = user.id === this.message.client.user.id;
     }
     _remove(user) {
+        var _a;
         if (this.partial)
             return;
         this.users.cache.delete(user.id);
@@ -134,7 +137,7 @@ class MessageReaction {
         if (user.id === this.message.client.user.id)
             this.me = false;
         if (this.count <= 0 && this.users.cache.size === 0) {
-            this.message.reactions.cache.delete(this.emoji.id || this.emoji.name);
+            this.message.reactions.cache.delete((_a = this.emoji.id) !== null && _a !== void 0 ? _a : this.emoji.name);
         }
     }
 }

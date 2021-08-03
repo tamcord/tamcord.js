@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const Action = require('./Action');
 const { Events } = require('../../util/Constants');
@@ -7,14 +8,10 @@ class GuildDeleteAction extends Action {
         this.deleted = new Map();
     }
     handle(data) {
-        var _a;
+        var _a, _b;
         const client = this.client;
         let guild = client.guilds.cache.get(data.id);
         if (guild) {
-            for (const channel of guild.channels.cache.values()) {
-                if (channel.type === 'text')
-                    channel.stopTyping(true);
-            }
             if (data.unavailable) {
                 // Guild is unavailable
                 guild.available = false;
@@ -31,7 +28,7 @@ class GuildDeleteAction extends Action {
                 };
             }
             for (const channel of guild.channels.cache.values())
-                this.client.channels.remove(channel.id);
+                this.client.channels._remove(channel.id);
             (_a = client.voice.adapters.get(data.id)) === null || _a === void 0 ? void 0 : _a.destroy();
             // Delete guild
             client.guilds.cache.delete(guild.id);
@@ -46,12 +43,12 @@ class GuildDeleteAction extends Action {
             this.scheduleForDeletion(guild.id);
         }
         else {
-            guild = this.deleted.get(data.id) || null;
+            guild = (_b = this.deleted.get(data.id)) !== null && _b !== void 0 ? _b : null;
         }
         return { guild };
     }
     scheduleForDeletion(id) {
-        this.client.setTimeout(() => this.deleted.delete(id), this.client.options.restWsBridgeTimeout);
+        setTimeout(() => this.deleted.delete(id), this.client.options.restWsBridgeTimeout).unref();
     }
 }
 module.exports = GuildDeleteAction;

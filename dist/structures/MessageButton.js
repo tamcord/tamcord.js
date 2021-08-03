@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const BaseMessageComponent = require('./BaseMessageComponent');
 const { RangeError } = require('../errors');
@@ -11,7 +12,7 @@ class MessageButton extends BaseMessageComponent {
     /**
      * @typedef {BaseMessageComponentOptions} MessageButtonOptions
      * @property {string} [label] The text to be displayed on this button
-     * @property {string} [customID] A unique string to be sent in the interaction when clicked
+     * @property {string} [customId] A unique string to be sent in the interaction when clicked
      * @property {MessageButtonStyleResolvable} [style] The style of this button
      * @property {EmojiIdentifierResolvable} [emoji] The emoji to be displayed to the left of the text
      * @property {string} [url] Optional URL for link-style buttons
@@ -35,7 +36,7 @@ class MessageButton extends BaseMessageComponent {
          * A unique string to be sent in the interaction when clicked
          * @type {?string}
          */
-        this.customID = (_c = (_b = data.custom_id) !== null && _b !== void 0 ? _b : data.customID) !== null && _c !== void 0 ? _c : null;
+        this.customId = (_c = (_b = data.custom_id) !== null && _b !== void 0 ? _b : data.customId) !== null && _c !== void 0 ? _c : null;
         /**
          * The style of this button
          * @type {?MessageButtonStyle}
@@ -53,17 +54,17 @@ class MessageButton extends BaseMessageComponent {
         this.url = (_d = data.url) !== null && _d !== void 0 ? _d : null;
         /**
          * Whether this button is currently disabled
-         * @type {?boolean}
+         * @type {boolean}
          */
         this.disabled = (_e = data.disabled) !== null && _e !== void 0 ? _e : false;
     }
     /**
-     * Sets the custom ID of this button
-     * @param {string} customID A unique string to be sent in the interaction when clicked
+     * Sets the custom id for this button
+     * @param {string} customId A unique string to be sent in the interaction when clicked
      * @returns {MessageButton}
      */
-    setCustomID(customID) {
-        this.customID = Util.verifyString(customID, RangeError, 'BUTTON_CUSTOM_ID');
+    setCustomId(customId) {
+        this.customId = Util.verifyString(customId, RangeError, 'BUTTON_CUSTOM_ID');
         return this;
     }
     /**
@@ -118,7 +119,7 @@ class MessageButton extends BaseMessageComponent {
      */
     toJSON() {
         return {
-            custom_id: this.customID,
+            custom_id: this.customId,
             disabled: this.disabled,
             emoji: this.emoji,
             label: this.label,
@@ -130,9 +131,8 @@ class MessageButton extends BaseMessageComponent {
     /**
      * Data that can be resolved to a MessageButtonStyle. This can be
      * * MessageButtonStyle
-     * * string
      * * number
-     * @typedef {string|number|MessageButtonStyle} MessageButtonStyleResolvable
+     * @typedef {number|MessageButtonStyle} MessageButtonStyleResolvable
      */
     /**
      * Resolves the style of a button

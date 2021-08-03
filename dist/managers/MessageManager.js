@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8,19 +9,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const BaseManager = require('./BaseManager');
+const { Collection } = require('@discordjs/collection');
+const CachedManager = require('./CachedManager');
 const { TypeError } = require('../errors');
-const APIMessage = require('../structures/APIMessage');
 const Message = require('../structures/Message');
-const Collection = require('../util/Collection');
-const LimitedCollection = require('../util/LimitedCollection');
+const MessagePayload = require('../structures/MessagePayload');
 /**
  * Manages API methods for Messages and holds their cache.
- * @extends {BaseManager}
+ * @extends {CachedManager}
  */
-class MessageManager extends BaseManager {
+class MessageManager extends CachedManager {
     constructor(channel, iterable) {
-        super(channel.client, iterable, Message, LimitedCollection, channel.client.options.messageCacheMaxSize);
+        super(channel.client, Message, iterable);
         /**
          * The channel that the messages belong to
          * @type {TextBasedChannel}
@@ -32,23 +32,23 @@ class MessageManager extends BaseManager {
      * @type {Collection<Snowflake, Message>}
      * @name MessageManager#cache
      */
-    add(data, cache) {
-        return super.add(data, cache, { extras: [this.channel] });
+    _add(data, cache) {
+        return super._add(data, cache, { extras: [this.channel] });
     }
     /**
      * The parameters to pass in when requesting previous messages from a channel. `around`, `before` and
      * `after` are mutually exclusive. All the parameters are optional.
      * @typedef {Object} ChannelLogsQueryOptions
      * @property {number} [limit=50] Number of messages to acquire
-     * @property {Snowflake} [before] ID of a message to get the messages that were posted before it
-     * @property {Snowflake} [after] ID of a message to get the messages that were posted after it
-     * @property {Snowflake} [around] ID of a message to get the messages that were posted around it
+     * @property {Snowflake} [before] The message's id to get the messages that were posted before it
+     * @property {Snowflake} [after] The message's id to get the messages that were posted after it
+     * @property {Snowflake} [around] The message's id to get the messages that were posted around it
      */
     /**
      * Gets a message, or messages, from this channel.
      * <info>The returned Collection does not contain reaction users of the messages if they were not cached.
      * Those need to be fetched separately in such a case.</info>
-     * @param {Snowflake|ChannelLogsQueryOptions} [message] The ID of the message to fetch, or query parameters.
+     * @param {Snowflake|ChannelLogsQueryOptions} [message] The id of the message to fetch, or query parameters.
      * @param {BaseFetchOptions} [options] Additional options for this fetch
      * @returns {Promise<Message>|Promise<Collection<Snowflake, Message>>}
      * @example
@@ -62,7 +62,7 @@ class MessageManager extends BaseManager {
      *   .then(messages => console.log(`Received ${messages.size} messages`))
      *   .catch(console.error);
      * @example
-     * // Get messages and filter by user ID
+     * // Get messages and filter by user id
      * channel.messages.fetch()
      *   .then(messages => console.log(`${messages.filter(m => m.author.id === '84484653687267328').size} messages`))
      *   .catch(console.error);
@@ -83,10 +83,11 @@ class MessageManager extends BaseManager {
      *   .catch(console.error);
      */
     fetchPinned(cache = true) {
-        return this.client.api.channels[this.channel.id].pins.get().then(data => {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield this.client.api.channels[this.channel.id].pins.get();
             const messages = new Collection();
             for (const message of data)
-                messages.set(message.id, this.add(message, cache));
+                messages.set(message.id, this._add(message, cache));
             return messages;
         });
     }
@@ -97,7 +98,7 @@ class MessageManager extends BaseManager {
      * @typedef {Message|Snowflake} MessageResolvable
      */
     /**
-     * Resolves a MessageResolvable to a Message object.
+     * Resolves a {@link MessageResolvable} to a {@link Message} object.
      * @method resolve
      * @memberof MessageManager
      * @instance
@@ -105,8 +106,8 @@ class MessageManager extends BaseManager {
      * @returns {?Message}
      */
     /**
-     * Resolves a MessageResolvable to a Message ID string.
-     * @method resolveID
+     * Resolves a {@link MessageResolvable} to a {@link Message} id.
+     * @method resolveId
      * @memberof MessageManager
      * @instance
      * @param {MessageResolvable} message The message resolvable to resolve
@@ -115,27 +116,27 @@ class MessageManager extends BaseManager {
     /**
      * Edits a message, even if it's not cached.
      * @param {MessageResolvable} message The message to edit
-     * @param {MessageEditOptions|APIMessage} [options] The options to provide
+     * @param {MessageEditOptions|MessagePayload} options The options to edit the message
      * @returns {Promise<Message>}
      */
     edit(message, options) {
         return __awaiter(this, void 0, void 0, function* () {
-            const messageID = this.resolveID(message);
-            if (!messageID)
+            const messageId = this.resolveId(message);
+            if (!messageId)
                 throw new TypeError('INVALID_TYPE', 'message', 'MessageResolvable');
-            const { data, files } = yield (options instanceof APIMessage
+            const { data, files } = yield (options instanceof MessagePayload
                 ? options
-                : APIMessage.create(message instanceof Message ? message : this, options))
+                : MessagePayload.create(message instanceof Message ? message : this, options))
                 .resolveData()
                 .resolveFiles();
-            const d = yield this.client.api.channels[this.channel.id].messages[messageID].patch({ data, files });
-            const existing = this.cache.get(messageID);
+            const d = yield this.client.api.channels[this.channel.id].messages[messageId].patch({ data, files });
+            const existing = this.cache.get(messageId);
             if (existing) {
                 const clone = existing._clone();
                 clone._patch(d);
                 return clone;
             }
-            return this.add(d);
+            return this._add(d);
         });
     }
     /**
@@ -144,12 +145,13 @@ class MessageManager extends BaseManager {
      * @returns {Promise<Message>}
      */
     crosspost(message) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            message = this.resolveID(message);
+            message = this.resolveId(message);
             if (!message)
                 throw new TypeError('INVALID_TYPE', 'message', 'MessageResolvable');
             const data = yield this.client.api.channels(this.channel.id).messages(message).crosspost.post();
-            return this.cache.get(data.id) || this.add(data);
+            return (_a = this.cache.get(data.id)) !== null && _a !== void 0 ? _a : this._add(data);
         });
     }
     /**
@@ -159,7 +161,7 @@ class MessageManager extends BaseManager {
      */
     pin(message) {
         return __awaiter(this, void 0, void 0, function* () {
-            message = this.resolveID(message);
+            message = this.resolveId(message);
             if (!message)
                 throw new TypeError('INVALID_TYPE', 'message', 'MessageResolvable');
             yield this.client.api.channels(this.channel.id).pins(message).put();
@@ -172,7 +174,7 @@ class MessageManager extends BaseManager {
      */
     unpin(message) {
         return __awaiter(this, void 0, void 0, function* () {
-            message = this.resolveID(message);
+            message = this.resolveId(message);
             if (!message)
                 throw new TypeError('INVALID_TYPE', 'message', 'MessageResolvable');
             yield this.client.api.channels(this.channel.id).pins(message).delete();
@@ -186,7 +188,7 @@ class MessageManager extends BaseManager {
      */
     react(message, emoji) {
         return __awaiter(this, void 0, void 0, function* () {
-            message = this.resolveID(message);
+            message = this.resolveId(message);
             if (!message)
                 throw new TypeError('INVALID_TYPE', 'message', 'MessageResolvable');
             emoji = this.client.emojis.resolveIdentifier(emoji);
@@ -203,21 +205,21 @@ class MessageManager extends BaseManager {
      */
     delete(message) {
         return __awaiter(this, void 0, void 0, function* () {
-            message = this.resolveID(message);
+            message = this.resolveId(message);
             if (!message)
                 throw new TypeError('INVALID_TYPE', 'message', 'MessageResolvable');
             yield this.client.api.channels(this.channel.id).messages(message).delete();
         });
     }
-    _fetchId(messageID, cache, force) {
+    _fetchId(messageId, cache, force) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!force) {
-                const existing = this.cache.get(messageID);
+                const existing = this.cache.get(messageId);
                 if (existing && !existing.partial)
                     return existing;
             }
-            const data = yield this.client.api.channels[this.channel.id].messages[messageID].get();
-            return this.add(data, cache);
+            const data = yield this.client.api.channels[this.channel.id].messages[messageId].get();
+            return this._add(data, cache);
         });
     }
     _fetchMany(options = {}, cache) {
@@ -225,7 +227,7 @@ class MessageManager extends BaseManager {
             const data = yield this.client.api.channels[this.channel.id].messages.get({ query: options });
             const messages = new Collection();
             for (const message of data)
-                messages.set(message.id, this.add(message, cache));
+                messages.set(message.id, this._add(message, cache));
             return messages;
         });
     }

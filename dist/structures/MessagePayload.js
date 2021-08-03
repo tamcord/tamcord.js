@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -18,7 +19,7 @@ const Util = require('../util/Util');
 /**
  * Represents a message to be sent to the API.
  */
-class APIMessage {
+class MessagePayload {
     /**
      * @param {MessageTarget} target - The target for this message to be sent to
      * @param {MessageOptions|WebhookMessageOptions} options - Options passed in from send
@@ -36,7 +37,7 @@ class APIMessage {
         this.options = options;
         /**
          * Data sendable to the API
-         * @type {?APIMessageRaw}
+         * @type {?APIMessage}
          */
         this.data = null;
         /**
@@ -101,7 +102,7 @@ class APIMessage {
     }
     /**
      * Makes the content of this message.
-     * @returns {?(string|string[])}
+     * @returns {?string}
      */
     makeContent() {
         let content;
@@ -111,32 +112,14 @@ class APIMessage {
         else if (typeof this.options.content !== 'undefined') {
             content = Util.verifyString(this.options.content, RangeError, 'MESSAGE_CONTENT_TYPE', false);
         }
-        if (typeof content !== 'string')
-            return content;
-        const isSplit = typeof this.options.split !== 'undefined' && this.options.split !== false;
-        const isCode = typeof this.options.code !== 'undefined' && this.options.code !== false;
-        const splitOptions = isSplit ? Object.assign({}, this.options.split) : undefined;
-        if (content) {
-            if (isCode) {
-                const codeName = typeof this.options.code === 'string' ? this.options.code : '';
-                content = `\`\`\`${codeName}\n${Util.cleanCodeBlockContent(content)}\n\`\`\``;
-                if (isSplit) {
-                    splitOptions.prepend = `${splitOptions.prepend || ''}\`\`\`${codeName}\n`;
-                    splitOptions.append = `\n\`\`\`${splitOptions.append || ''}`;
-                }
-            }
-            if (isSplit) {
-                content = Util.splitMessage(content, splitOptions);
-            }
-        }
         return content;
     }
     /**
      * Resolves data.
-     * @returns {APIMessage}
+     * @returns {MessagePayload}
      */
     resolveData() {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f;
         if (this.data)
             return this;
         const isInteraction = this.isInteraction;
@@ -151,18 +134,18 @@ class APIMessage {
                 throw new RangeError('MESSAGE_NONCE_TYPE');
             }
         }
-        const components = (_a = this.options.components) === null || _a === void 0 ? void 0 : _a.map(c => BaseMessageComponent.create(Array.isArray(c) ? { type: MessageComponentTypes.ACTION_ROW, components: c } : c).toJSON());
+        const components = (_a = this.options.components) === null || _a === void 0 ? void 0 : _a.map(c => BaseMessageComponent.create(c).toJSON());
         let username;
         let avatarURL;
         if (isWebhook) {
-            username = this.options.username || this.target.name;
+            username = (_b = this.options.username) !== null && _b !== void 0 ? _b : this.target.name;
             if (this.options.avatarURL)
                 avatarURL = this.options.avatarURL;
         }
         let flags;
         if (this.isMessage || this.isMessageManager) {
             // eslint-disable-next-line eqeqeq
-            flags = this.options.flags != null ? new MessageFlags(this.options.flags).bitfield : (_b = this.target.flags) === null || _b === void 0 ? void 0 : _b.bitfield;
+            flags = this.options.flags != null ? new MessageFlags(this.options.flags).bitfield : (_c = this.target.flags) === null || _c === void 0 ? void 0 : _c.bitfield;
         }
         else if (isInteraction && this.options.ephemeral) {
             flags = MessageFlags.FLAGS.EPHEMERAL;
@@ -178,12 +161,12 @@ class APIMessage {
         let message_reference;
         if (typeof this.options.reply === 'object') {
             const message_id = this.isMessage
-                ? this.target.channel.messages.resolveID(this.options.reply.messageReference)
-                : this.target.messages.resolveID(this.options.reply.messageReference);
+                ? this.target.channel.messages.resolveId(this.options.reply.messageReference)
+                : this.target.messages.resolveId(this.options.reply.messageReference);
             if (message_id) {
                 message_reference = {
                     message_id,
-                    fail_if_not_exists: (_c = this.options.reply.failIfNotExists) !== null && _c !== void 0 ? _c : true,
+                    fail_if_not_exists: (_d = this.options.reply.failIfNotExists) !== null && _d !== void 0 ? _d : this.target.client.options.failIfNotExists,
                 };
             }
         }
@@ -191,7 +174,7 @@ class APIMessage {
             content,
             tts,
             nonce,
-            embeds: (_d = this.options.embeds) === null || _d === void 0 ? void 0 : _d.map(embed => new MessageEmbed(embed).toJSON()),
+            embeds: (_e = this.options.embeds) === null || _e === void 0 ? void 0 : _e.map(embed => new MessageEmbed(embed).toJSON()),
             components,
             username,
             avatar_url: avatarURL,
@@ -199,12 +182,13 @@ class APIMessage {
             flags,
             message_reference,
             attachments: this.options.attachments,
+            sticker_ids: (_f = this.options.stickers) === null || _f === void 0 ? void 0 : _f.map(sticker => { var _a; return (_a = sticker.id) !== null && _a !== void 0 ? _a : sticker; }),
         };
         return this;
     }
     /**
      * Resolves files.
-     * @returns {Promise<APIMessage>}
+     * @returns {Promise<MessagePayload>}
      */
     resolveFiles() {
         var _a, _b;
@@ -216,38 +200,12 @@ class APIMessage {
         });
     }
     /**
-     * Converts this APIMessage into an array of APIMessages for each split content
-     * @returns {APIMessage[]}
-     */
-    split() {
-        if (!this.data)
-            this.resolveData();
-        if (!Array.isArray(this.data.content))
-            return [this];
-        const apiMessages = [];
-        for (let i = 0; i < this.data.content.length; i++) {
-            let data;
-            let opt;
-            if (i === this.data.content.length - 1) {
-                data = Object.assign(Object.assign({}, this.data), { content: this.data.content[i] });
-                opt = Object.assign(Object.assign({}, this.options), { content: this.data.content[i] });
-            }
-            else {
-                data = { content: this.data.content[i], tts: this.data.tts, allowed_mentions: this.options.allowedMentions };
-                opt = { content: this.data.content[i], tts: this.data.tts, allowedMentions: this.options.allowedMentions };
-            }
-            const apiMessage = new APIMessage(this.target, opt);
-            apiMessage.data = data;
-            apiMessages.push(apiMessage);
-        }
-        return apiMessages;
-    }
-    /**
      * Resolves a single file into an object sendable to the API.
      * @param {BufferResolvable|Stream|FileOptions|MessageAttachment} fileLike Something that could be resolved to a file
      * @returns {MessageFile}
      */
     static resolveFile(fileLike) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             let attachment;
             let name;
@@ -269,21 +227,21 @@ class APIMessage {
             }
             else {
                 attachment = fileLike.attachment;
-                name = fileLike.name || findName(attachment);
+                name = (_a = fileLike.name) !== null && _a !== void 0 ? _a : findName(attachment);
             }
             const resource = yield DataResolver.resolveFile(attachment);
             return { attachment, name, file: resource };
         });
     }
     /**
-     * Creates an `APIMessage` from user-level arguments.
+     * Creates a `MessagePayload` from user-level arguments.
      * @param {MessageTarget} target Target to send to
      * @param {string|MessageOptions|WebhookMessageOptions} options Options or content to use
      * @param {MessageOptions|WebhookMessageOptions} [extra={}] - Extra options to add onto specified options
-     * @returns {MessageOptions|WebhookMessageOptions}
+     * @returns {MessagePayload}
      */
     static create(target, options, extra = {}) {
         return new this(target, typeof options !== 'object' || options === null ? Object.assign({ content: options }, extra) : Object.assign(Object.assign({}, options), extra));
     }
 }
-module.exports = APIMessage;
+module.exports = MessagePayload;

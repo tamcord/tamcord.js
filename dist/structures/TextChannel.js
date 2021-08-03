@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8,12 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+const { Collection } = require('@discordjs/collection');
 const GuildChannel = require('./GuildChannel');
 const Webhook = require('./Webhook');
 const TextBasedChannel = require('./interfaces/TextBasedChannel');
 const MessageManager = require('../managers/MessageManager');
 const ThreadManager = require('../managers/ThreadManager');
-const Collection = require('../util/Collection');
 const DataResolver = require('../util/DataResolver');
 /**
  * Represents a guild text channel on Discord.
@@ -24,9 +25,10 @@ class TextChannel extends GuildChannel {
     /**
      * @param {Guild} guild The guild the text channel is part of
      * @param {APIChannel} data The data for the text channel
+     * @param {Client} [client] A safety parameter for the client that instantiated this
      */
-    constructor(guild, data) {
-        super(guild, data);
+    constructor(guild, data, client) {
+        super(guild, data, client);
         /**
          * A manager of the messages sent to this channel
          * @type {MessageManager}
@@ -42,7 +44,6 @@ class TextChannel extends GuildChannel {
          * @type {boolean}
          */
         this.nsfw = Boolean(data.nsfw);
-        this._typing = new Map();
     }
     _patch(data) {
         super._patch(data);
@@ -58,10 +59,10 @@ class TextChannel extends GuildChannel {
         }
         if ('last_message_id' in data) {
             /**
-             * The ID of the last message sent in this channel, if one was sent
+             * The last message id sent in the channel, if one was sent
              * @type {?Snowflake}
              */
-            this.lastMessageID = data.last_message_id;
+            this.lastMessageId = data.last_message_id;
         }
         if ('rate_limit_per_user' in data) {
             /**
@@ -87,7 +88,7 @@ class TextChannel extends GuildChannel {
         }
         if ('messages' in data) {
             for (const message of data.messages)
-                this.messages.add(message);
+                this.messages._add(message);
         }
     }
     /**
@@ -137,7 +138,8 @@ class TextChannel extends GuildChannel {
      *   .catch(console.error);
      */
     fetchWebhooks() {
-        return this.client.api.channels[this.id].webhooks.get().then(data => {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield this.client.api.channels[this.id].webhooks.get();
             const hooks = new Collection();
             for (const hook of data)
                 hooks.set(hook.id, new Webhook(this.client, hook));
@@ -154,7 +156,7 @@ class TextChannel extends GuildChannel {
      * Creates a webhook for the channel.
      * @param {string} name The name of the webhook
      * @param {ChannelWebhookCreateOptions} [options] Options for creating the webhook
-     * @returns {Promise<Webhook>} webhook The created webhook
+     * @returns {Promise<Webhook>} Returns the created Webhook
      * @example
      * // Create a webhook for the current channel
      * channel.createWebhook('Snek', {
@@ -169,15 +171,14 @@ class TextChannel extends GuildChannel {
             if (typeof avatar === 'string' && !avatar.startsWith('data:')) {
                 avatar = yield DataResolver.resolveImage(avatar);
             }
-            return this.client.api.channels[this.id].webhooks
-                .post({
+            const data = yield this.client.api.channels[this.id].webhooks.post({
                 data: {
                     name,
                     avatar,
                 },
                 reason,
-            })
-                .then(data => new Webhook(this.client, data));
+            });
+            return new Webhook(this.client, data);
         });
     }
     // These are here only for documentation purposes - they are implemented by TextBasedChannel
@@ -185,14 +186,11 @@ class TextChannel extends GuildChannel {
     get lastMessage() { }
     get lastPinAt() { }
     send() { }
-    startTyping() { }
-    stopTyping() { }
-    get typing() { }
-    get typingCount() { }
+    sendTyping() { }
     createMessageCollector() { }
     awaitMessages() { }
-    createMessageComponentInteractionCollector() { }
-    awaitMessageComponentInteraction() { }
+    createMessageComponentCollector() { }
+    awaitMessageComponent() { }
     bulkDelete() { }
 }
 TextBasedChannel.applyToClass(TextChannel, true);

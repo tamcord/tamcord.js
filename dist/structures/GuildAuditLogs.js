@@ -1,8 +1,19 @@
+// @ts-nocheck
 'use strict';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+const { Collection } = require('@discordjs/collection');
 const Integration = require('./Integration');
 const StageInstance = require('./StageInstance');
+const Sticker = require('./Sticker');
 const Webhook = require('./Webhook');
-const Collection = require('../util/Collection');
 const { OverwriteTypes, PartialTypes } = require('../util/Constants');
 const Permissions = require('../util/Permissions');
 const SnowflakeUtil = require('../util/SnowflakeUtil');
@@ -19,6 +30,8 @@ const Util = require('../util/Util');
  * * MESSAGE
  * * INTEGRATION
  * * STAGE_INSTANCE
+ * * STICKER
+ * * THREAD
  * @typedef {string} AuditLogTargetType
  */
 /**
@@ -38,6 +51,8 @@ const Targets = {
     MESSAGE: 'MESSAGE',
     INTEGRATION: 'INTEGRATION',
     STAGE_INSTANCE: 'STAGE_INSTANCE',
+    STICKER: 'STICKER',
+    THREAD: 'THREAD',
     UNKNOWN: 'UNKNOWN',
 };
 /**
@@ -81,6 +96,12 @@ const Targets = {
  * * STAGE_INSTANCE_CREATE: 83
  * * STAGE_INSTANCE_UPDATE: 84
  * * STAGE_INSTANCE_DELETE: 85
+ * * STICKER_CREATE: 90
+ * * STICKER_UPDATE: 91
+ * * STICKER_DELETE: 92
+ * * THREAD_CREATE: 110
+ * * THREAD_UPDATE: 111
+ * * THREAD_DELETE: 112
  * @typedef {?(number|string)} AuditLogAction
  */
 /**
@@ -128,6 +149,12 @@ const Actions = {
     STAGE_INSTANCE_CREATE: 83,
     STAGE_INSTANCE_UPDATE: 84,
     STAGE_INSTANCE_DELETE: 85,
+    STICKER_CREATE: 90,
+    STICKER_UPDATE: 91,
+    STICKER_DELETE: 92,
+    THREAD_CREATE: 110,
+    THREAD_UPDATE: 111,
+    THREAD_DELETE: 112,
 };
 /**
  * Audit logs entries are held in this class.
@@ -136,7 +163,10 @@ class GuildAuditLogs {
     constructor(guild, data) {
         if (data.users)
             for (const user of data.users)
-                guild.client.users.add(user);
+                guild.client.users._add(user);
+        if (data.threads)
+            for (const thread of data.threads)
+                guild.client.channels._add(thread, guild);
         /**
          * Cached webhooks
          * @type {Collection<Snowflake, Webhook>}
@@ -174,8 +204,11 @@ class GuildAuditLogs {
      * @returns {Promise<GuildAuditLogs>}
      */
     static build(...args) {
-        const logs = new GuildAuditLogs(...args);
-        return Promise.all(logs.entries.map(e => e.target)).then(() => logs);
+        return __awaiter(this, void 0, void 0, function* () {
+            const logs = new GuildAuditLogs(...args);
+            yield Promise.all(logs.entries.map(e => e.target));
+            return logs;
+        });
     }
     /**
      * The target of an entry. It can be one of:
@@ -189,9 +222,11 @@ class GuildAuditLogs {
      * * A message
      * * An integration
      * * A stage instance
+     * * A sticker
+     * * A thread
      * * An object with an id key if target was deleted
      * * An object where the keys represent either the new value or the old value
-     * @typedef {?(Object|Guild|Channel|User|Role|Invite|Webhook|GuildEmoji|Message|Integration|StageInstance)}
+     * @typedef {?(Object|Guild|Channel|User|Role|Invite|Webhook|GuildEmoji|Message|Integration|StageInstance|Sticker)}
      * AuditLogEntryTarget
      */
     /**
@@ -220,6 +255,12 @@ class GuildAuditLogs {
             return Targets.INTEGRATION;
         if (target < 86)
             return Targets.STAGE_INSTANCE;
+        if (target < 100)
+            return Targets.STICKER;
+        if (target < 110)
+            return Targets.UNKNOWN;
+        if (target < 120)
+            return Targets.THREAD;
         return Targets.UNKNOWN;
     }
     /**
@@ -248,6 +289,8 @@ class GuildAuditLogs {
             Actions.MESSAGE_PIN,
             Actions.INTEGRATION_CREATE,
             Actions.STAGE_INSTANCE_CREATE,
+            Actions.STICKER_CREATE,
+            Actions.THREAD_CREATE,
         ].includes(action)) {
             return 'CREATE';
         }
@@ -267,6 +310,8 @@ class GuildAuditLogs {
             Actions.MESSAGE_UNPIN,
             Actions.INTEGRATION_DELETE,
             Actions.STAGE_INSTANCE_DELETE,
+            Actions.STICKER_DELETE,
+            Actions.THREAD_DELETE,
         ].includes(action)) {
             return 'DELETE';
         }
@@ -283,6 +328,8 @@ class GuildAuditLogs {
             Actions.EMOJI_UPDATE,
             Actions.INTEGRATION_UPDATE,
             Actions.STAGE_INSTANCE_UPDATE,
+            Actions.STICKER_UPDATE,
+            Actions.THREAD_UPDATE,
         ].includes(action)) {
             return 'UPDATE';
         }
@@ -297,7 +344,7 @@ class GuildAuditLogs {
  */
 class GuildAuditLogsEntry {
     constructor(logs, guild, data) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
         const targetType = GuildAuditLogs.targetType(data.action_type);
         /**
          * The target type of this entry
@@ -318,14 +365,14 @@ class GuildAuditLogsEntry {
          * The reason of this entry
          * @type {?string}
          */
-        this.reason = data.reason || null;
+        this.reason = (_a = data.reason) !== null && _a !== void 0 ? _a : null;
         /**
          * The user that executed this entry
          * @type {?User}
          */
         this.executor = data.user_id
             ? guild.client.options.partials.includes(PartialTypes.USER)
-                ? guild.client.users.add({ id: data.user_id })
+                ? guild.client.users._add({ id: data.user_id })
                 : guild.client.users.cache.get(data.user_id)
             : null;
         /**
@@ -337,11 +384,11 @@ class GuildAuditLogsEntry {
          */
         /**
          * Specific property changes
-         * @type {AuditLogChange[]}
+         * @type {?AuditLogChange[]}
          */
-        this.changes = data.changes ? data.changes.map(c => ({ key: c.key, old: c.old_value, new: c.new_value })) : null;
+        this.changes = (_c = (_b = data.changes) === null || _b === void 0 ? void 0 : _b.map(c => ({ key: c.key, old: c.old_value, new: c.new_value }))) !== null && _c !== void 0 ? _c : null;
         /**
-         * The ID of this entry
+         * The entry's id
          * @type {Snowflake}
          */
         this.id = data.id;
@@ -361,15 +408,15 @@ class GuildAuditLogsEntry {
             case Actions.MESSAGE_DELETE:
             case Actions.MESSAGE_BULK_DELETE:
                 this.extra = {
-                    channel: (_a = guild.channels.cache.get(data.options.channel_id)) !== null && _a !== void 0 ? _a : { id: data.options.channel_id },
+                    channel: (_d = guild.channels.cache.get(data.options.channel_id)) !== null && _d !== void 0 ? _d : { id: data.options.channel_id },
                     count: Number(data.options.count),
                 };
                 break;
             case Actions.MESSAGE_PIN:
             case Actions.MESSAGE_UNPIN:
                 this.extra = {
-                    channel: (_b = guild.client.channels.cache.get(data.options.channel_id)) !== null && _b !== void 0 ? _b : { id: data.options.channel_id },
-                    messageID: data.options.message_id,
+                    channel: (_e = guild.client.channels.cache.get(data.options.channel_id)) !== null && _e !== void 0 ? _e : { id: data.options.channel_id },
+                    messageId: data.options.message_id,
                 };
                 break;
             case Actions.MEMBER_DISCONNECT:
@@ -382,14 +429,14 @@ class GuildAuditLogsEntry {
             case Actions.CHANNEL_OVERWRITE_DELETE:
                 switch (Number(data.options.type)) {
                     case OverwriteTypes.role:
-                        this.extra = (_c = guild.roles.cache.get(data.options.id)) !== null && _c !== void 0 ? _c : {
+                        this.extra = (_f = guild.roles.cache.get(data.options.id)) !== null && _f !== void 0 ? _f : {
                             id: data.options.id,
                             name: data.options.role_name,
                             type: OverwriteTypes[OverwriteTypes.role],
                         };
                         break;
                     case OverwriteTypes.member:
-                        this.extra = (_d = guild.members.cache.get(data.options.id)) !== null && _d !== void 0 ? _d : {
+                        this.extra = (_g = guild.members.cache.get(data.options.id)) !== null && _g !== void 0 ? _g : {
                             id: data.options.id,
                             type: OverwriteTypes[OverwriteTypes.member],
                         };
@@ -402,7 +449,7 @@ class GuildAuditLogsEntry {
             case Actions.STAGE_INSTANCE_DELETE:
             case Actions.STAGE_INSTANCE_UPDATE:
                 this.extra = {
-                    channel: (_f = guild.client.channels.cache.get((_e = data.options) === null || _e === void 0 ? void 0 : _e.channel_id)) !== null && _f !== void 0 ? _f : { id: (_g = data.options) === null || _g === void 0 ? void 0 : _g.channel_id },
+                    channel: (_j = guild.client.channels.cache.get((_h = data.options) === null || _h === void 0 ? void 0 : _h.channel_id)) !== null && _j !== void 0 ? _j : { id: (_k = data.options) === null || _k === void 0 ? void 0 : _k.channel_id },
                 };
                 break;
             default:
@@ -415,7 +462,8 @@ class GuildAuditLogsEntry {
         this.target = null;
         if (targetType === Targets.UNKNOWN) {
             this.target = this.changes.reduce((o, c) => {
-                o[c.key] = c.new || c.old;
+                var _a;
+                o[c.key] = (_a = c.new) !== null && _a !== void 0 ? _a : c.old;
                 return o;
             }, {});
             this.target.id = data.target_id;
@@ -423,7 +471,7 @@ class GuildAuditLogsEntry {
         }
         else if (targetType === Targets.USER && data.target_id) {
             this.target = guild.client.options.partials.includes(PartialTypes.USER)
-                ? guild.client.users.add({ id: data.target_id })
+                ? guild.client.users._add({ id: data.target_id })
                 : guild.client.users.cache.get(data.target_id);
         }
         else if (targetType === Targets.GUILD) {
@@ -431,68 +479,78 @@ class GuildAuditLogsEntry {
         }
         else if (targetType === Targets.WEBHOOK) {
             this.target =
-                logs.webhooks.get(data.target_id) ||
-                    new Webhook(guild.client, this.changes.reduce((o, c) => {
-                        o[c.key] = c.new || c.old;
-                        return o;
-                    }, {
-                        id: data.target_id,
-                        guild_id: guild.id,
-                    }));
+                (_l = logs.webhooks.get(data.target_id)) !== null && _l !== void 0 ? _l : new Webhook(guild.client, this.changes.reduce((o, c) => {
+                    var _a;
+                    o[c.key] = (_a = c.new) !== null && _a !== void 0 ? _a : c.old;
+                    return o;
+                }, {
+                    id: data.target_id,
+                    guild_id: guild.id,
+                }));
         }
         else if (targetType === Targets.INVITE) {
-            this.target = guild.members.fetch(guild.client.user.id).then(me => {
+            this.target = guild.members.fetch(guild.client.user.id).then((me) => __awaiter(this, void 0, void 0, function* () {
+                var _v, _w;
                 if (me.permissions.has(Permissions.FLAGS.MANAGE_GUILD)) {
-                    const change = this.changes.find(c => c.key === 'code');
-                    return guild.fetchInvites().then(invites => {
-                        this.target = invites.find(i => i.code === (change.new || change.old));
-                    });
+                    let change = this.changes.find(c => c.key === 'code');
+                    change = (_v = change.new) !== null && _v !== void 0 ? _v : change.old;
+                    const invites = yield guild.invites.fetch();
+                    this.target = (_w = invites.find(i => i.code === change)) !== null && _w !== void 0 ? _w : null;
                 }
                 else {
                     this.target = this.changes.reduce((o, c) => {
-                        o[c.key] = c.new || c.old;
+                        var _a;
+                        o[c.key] = (_a = c.new) !== null && _a !== void 0 ? _a : c.old;
                         return o;
                     }, {});
-                    return this.target;
                 }
-            });
+            }));
         }
         else if (targetType === Targets.MESSAGE) {
             // Discord sends a channel id for the MESSAGE_BULK_DELETE action type.
             this.target =
                 data.action_type === Actions.MESSAGE_BULK_DELETE
-                    ? guild.channels.cache.get(data.target_id) || { id: data.target_id }
+                    ? (_m = guild.channels.cache.get(data.target_id)) !== null && _m !== void 0 ? _m : { id: data.target_id }
                     : guild.client.users.cache.get(data.target_id);
         }
         else if (targetType === Targets.INTEGRATION) {
             this.target =
-                logs.integrations.get(data.target_id) ||
-                    new Integration(guild.client, this.changes.reduce((o, c) => {
-                        o[c.key] = c.new || c.old;
-                        return o;
-                    }, { id: data.target_id }), guild);
+                (_o = logs.integrations.get(data.target_id)) !== null && _o !== void 0 ? _o : new Integration(guild.client, this.changes.reduce((o, c) => {
+                    var _a;
+                    o[c.key] = (_a = c.new) !== null && _a !== void 0 ? _a : c.old;
+                    return o;
+                }, { id: data.target_id }), guild);
         }
-        else if (targetType === Targets.CHANNEL) {
+        else if (targetType === Targets.CHANNEL || targetType === Targets.THREAD) {
             this.target =
-                guild.channels.cache.get(data.target_id) ||
-                    this.changes.reduce((o, c) => {
-                        o[c.key] = c.new || c.old;
-                        return o;
-                    }, { id: data.target_id });
+                (_p = guild.channels.cache.get(data.target_id)) !== null && _p !== void 0 ? _p : this.changes.reduce((o, c) => {
+                    var _a;
+                    o[c.key] = (_a = c.new) !== null && _a !== void 0 ? _a : c.old;
+                    return o;
+                }, { id: data.target_id });
         }
         else if (targetType === Targets.STAGE_INSTANCE) {
             this.target =
-                (_h = guild.stageInstances.cache.get(data.target_id)) !== null && _h !== void 0 ? _h : new StageInstance(guild.client, this.changes.reduce((o, c) => {
-                    o[c.key] = c.new || c.old;
+                (_q = guild.stageInstances.cache.get(data.target_id)) !== null && _q !== void 0 ? _q : new StageInstance(guild.client, this.changes.reduce((o, c) => {
+                    var _a;
+                    o[c.key] = (_a = c.new) !== null && _a !== void 0 ? _a : c.old;
                     return o;
                 }, {
                     id: data.target_id,
-                    channel_id: (_j = data.options) === null || _j === void 0 ? void 0 : _j.channel_id,
+                    channel_id: (_r = data.options) === null || _r === void 0 ? void 0 : _r.channel_id,
                     guild_id: guild.id,
                 }));
         }
+        else if (targetType === Targets.STICKER) {
+            this.target =
+                (_s = guild.stickers.cache.get(data.target_id)) !== null && _s !== void 0 ? _s : new Sticker(guild.client, this.changes.reduce((o, c) => {
+                    var _a;
+                    o[c.key] = (_a = c.new) !== null && _a !== void 0 ? _a : c.old;
+                    return o;
+                }, { id: data.target_id }));
+        }
         else if (data.target_id) {
-            this.target = ((_k = guild[`${targetType.toLowerCase()}s`]) === null || _k === void 0 ? void 0 : _k.cache.get(data.target_id)) || { id: data.target_id };
+            this.target = (_u = (_t = guild[`${targetType.toLowerCase()}s`]) === null || _t === void 0 ? void 0 : _t.cache.get(data.target_id)) !== null && _u !== void 0 ? _u : { id: data.target_id };
         }
     }
     /**

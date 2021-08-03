@@ -1,5 +1,6 @@
+// @ts-nocheck
 'use strict';
-const Collection = require('../../../util/Collection');
+const { Collection } = require('@discordjs/collection');
 const { Events } = require('../../../util/Constants');
 module.exports = (client, { d: data }) => {
     const guild = client.guilds.cache.get(data.guild_id);
@@ -7,10 +8,10 @@ module.exports = (client, { d: data }) => {
         return;
     const members = new Collection();
     for (const member of data.members)
-        members.set(member.user.id, guild.members.add(member));
+        members.set(member.user.id, guild.members._add(member));
     if (data.presences) {
         for (const presence of data.presences)
-            guild.presences.add(Object.assign(presence, { guild }));
+            guild.presences._add(Object.assign(presence, { guild }));
     }
     /**
      * Emitted whenever a chunk of guild members is received (all members come from the same guild).

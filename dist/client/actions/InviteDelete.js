@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const Action = require('./Action');
 const Invite = require('../../structures/Invite');
@@ -11,6 +12,7 @@ class InviteDeleteAction extends Action {
             return false;
         const inviteData = Object.assign(data, { channel, guild });
         const invite = new Invite(client, inviteData);
+        guild.invites.cache.delete(invite.code);
         /**
          * Emitted when an invite is deleted.
          * <info> This event only triggers if the client has `MANAGE_GUILD` permissions for the guild,

@@ -1,6 +1,7 @@
+// @ts-nocheck
 'use strict';
+const { Collection } = require('@discordjs/collection');
 const GuildChannel = require('./GuildChannel');
-const Collection = require('../util/Collection');
 const Permissions = require('../util/Permissions');
 /**
  * Represents a voice-based guild channel on Discord.
@@ -33,7 +34,7 @@ class BaseGuildVoiceChannel extends GuildChannel {
     get members() {
         const coll = new Collection();
         for (const state of this.guild.voiceStates.cache.values()) {
-            if (state.channelID === this.id && state.member) {
+            if (state.channelId === this.id && state.member) {
                 coll.set(state.id, state.member);
             }
         }

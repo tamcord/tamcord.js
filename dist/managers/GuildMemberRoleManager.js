@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8,13 +9,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+const { Collection } = require('@discordjs/collection');
+const DataManager = require('./DataManager');
 const { TypeError } = require('../errors');
-const Collection = require('../util/Collection');
+const Role = require('../structures/Role');
 /**
  * Manages API methods for roles of a GuildMember and stores their cache.
+ * @extends {DataManager}
  */
-class GuildMemberRoleManager {
+class GuildMemberRoleManager extends DataManager {
     constructor(member) {
+        super(member.client, Role);
         /**
          * The GuildMember this manager belongs to
          * @type {GuildMember}
@@ -25,7 +30,6 @@ class GuildMemberRoleManager {
          * @type {Guild}
          */
         this.guild = member.guild;
-        Object.defineProperty(this, 'client', { value: member.client });
     }
     /**
      * The roles of this member
@@ -72,7 +76,8 @@ class GuildMemberRoleManager {
      * @readonly
      */
     get premiumSubscriberRole() {
-        return this.cache.find(role => role.tags && role.tags.premiumSubscriberRole) || null;
+        var _a;
+        return (_a = this.cache.find(role => { var _a; return (_a = role.tags) === null || _a === void 0 ? void 0 : _a.premiumSubscriberRole; })) !== null && _a !== void 0 ? _a : null;
     }
     /**
      * The managed role this member created when joining the guild, if any
@@ -81,9 +86,10 @@ class GuildMemberRoleManager {
      * @readonly
      */
     get botRole() {
+        var _a;
         if (!this.member.user.bot)
             return null;
-        return this.cache.find(role => role.tags && role.tags.botID === this.member.user.id) || null;
+        return (_a = this.cache.find(role => { var _a; return ((_a = role.tags) === null || _a === void 0 ? void 0 : _a.botId) === this.member.user.id; })) !== null && _a !== void 0 ? _a : null;
     }
     /**
      * Adds a role (or multiple roles) to the member.
@@ -96,7 +102,7 @@ class GuildMemberRoleManager {
             if (roleOrRoles instanceof Collection || Array.isArray(roleOrRoles)) {
                 const resolvedRoles = [];
                 for (const role of roleOrRoles.values()) {
-                    const resolvedRole = this.guild.roles.resolveID(role);
+                    const resolvedRole = this.guild.roles.resolveId(role);
                     if (!resolvedRole)
                         throw new TypeError('INVALID_ELEMENT', 'Array or Collection', 'roles', role);
                     resolvedRoles.push(resolvedRole);
@@ -105,7 +111,7 @@ class GuildMemberRoleManager {
                 return this.set(newRoles, reason);
             }
             else {
-                roleOrRoles = this.guild.roles.resolveID(roleOrRoles);
+                roleOrRoles = this.guild.roles.resolveId(roleOrRoles);
                 if (roleOrRoles === null) {
                     throw new TypeError('INVALID_TYPE', 'roles', 'Role, Snowflake or Array or Collection of Roles or Snowflakes');
                 }
@@ -127,7 +133,7 @@ class GuildMemberRoleManager {
             if (roleOrRoles instanceof Collection || Array.isArray(roleOrRoles)) {
                 const resolvedRoles = [];
                 for (const role of roleOrRoles.values()) {
-                    const resolvedRole = this.guild.roles.resolveID(role);
+                    const resolvedRole = this.guild.roles.resolveId(role);
                     if (!resolvedRole)
                         throw new TypeError('INVALID_ELEMENT', 'Array or Collection', 'roles', role);
                     resolvedRoles.push(resolvedRole);
@@ -136,7 +142,7 @@ class GuildMemberRoleManager {
                 return this.set(newRoles, reason);
             }
             else {
-                roleOrRoles = this.guild.roles.resolveID(roleOrRoles);
+                roleOrRoles = this.guild.roles.resolveId(roleOrRoles);
                 if (roleOrRoles === null) {
                     throw new TypeError('INVALID_TYPE', 'roles', 'Role, Snwoflake or Array or Collection of Roles or Snowflakes');
                 }
@@ -150,7 +156,7 @@ class GuildMemberRoleManager {
     }
     /**
      * Sets the roles applied to the member.
-     * @param {Collection<Snowflake, Role>|RoleResolvable[]} roles The roles or role IDs to apply
+     * @param {Collection<Snowflake, Role>|RoleResolvable[]} roles The roles or role ids to apply
      * @param {string} [reason] Reason for applying the roles
      * @returns {Promise<GuildMember>}
      * @example
@@ -169,11 +175,8 @@ class GuildMemberRoleManager {
     }
     clone() {
         const clone = new this.constructor(this.member);
-        clone.member._roles = [...this.cache.keyArray()];
+        clone.member._roles = [...this.cache.keys()];
         return clone;
-    }
-    valueOf() {
-        return this.cache;
     }
 }
 module.exports = GuildMemberRoleManager;

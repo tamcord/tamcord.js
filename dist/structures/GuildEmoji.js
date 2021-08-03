@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -50,7 +51,7 @@ class GuildEmoji extends BaseGuildEmoji {
     _patch(data) {
         super._patch(data);
         if (data.user)
-            this.author = this.client.users.add(data.user);
+            this.author = this.client.users._add(data.user);
         if (data.roles)
             this._roles = data.roles;
     }
@@ -62,7 +63,7 @@ class GuildEmoji extends BaseGuildEmoji {
     get deletable() {
         if (!this.guild.me)
             throw new Error('GUILD_UNCACHED_ME');
-        return !this.managed && this.guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS);
+        return !this.managed && this.guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS_AND_STICKERS);
     }
     /**
      * A manager for roles this emoji is active for.
@@ -84,8 +85,8 @@ class GuildEmoji extends BaseGuildEmoji {
             else {
                 if (!this.guild.me)
                     throw new Error('GUILD_UNCACHED_ME');
-                if (!this.guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS)) {
-                    throw new Error('MISSING_MANAGE_EMOJIS_PERMISSION', this.guild);
+                if (!this.guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS_AND_STICKERS)) {
+                    throw new Error('MISSING_MANAGE_EMOJIS_AND_STICKERS_PERMISSION', this.guild);
                 }
             }
             const data = yield this.client.api.guilds(this.guild.id).emojis(this.id).get();
@@ -111,18 +112,19 @@ class GuildEmoji extends BaseGuildEmoji {
      *   .catch(console.error);
      */
     edit(data, reason) {
-        const roles = data.roles ? data.roles.map(r => r.id || r) : undefined;
-        return this.client.api
-            .guilds(this.guild.id)
-            .emojis(this.id)
-            .patch({
-            data: {
-                name: data.name,
-                roles,
-            },
-            reason,
-        })
-            .then(newData => {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const roles = (_a = data.roles) === null || _a === void 0 ? void 0 : _a.map(r => { var _a; return (_a = r.id) !== null && _a !== void 0 ? _a : r; });
+            const newData = yield this.client.api
+                .guilds(this.guild.id)
+                .emojis(this.id)
+                .patch({
+                data: {
+                    name: data.name,
+                    roles,
+                },
+                reason,
+            });
             const clone = this._clone();
             clone._patch(newData);
             return clone;
@@ -143,16 +145,15 @@ class GuildEmoji extends BaseGuildEmoji {
      * @returns {Promise<GuildEmoji>}
      */
     delete(reason) {
-        return this.client.api
-            .guilds(this.guild.id)
-            .emojis(this.id)
-            .delete({ reason })
-            .then(() => this);
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.client.api.guilds(this.guild.id).emojis(this.id).delete({ reason });
+            return this;
+        });
     }
     /**
      * Whether this emoji is the same as another one.
      * @param {GuildEmoji|APIEmoji} other The emoji to compare it to
-     * @returns {boolean} Whether the emoji is equal to the given emoji or not
+     * @returns {boolean}
      */
     equals(other) {
         if (other instanceof GuildEmoji) {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const BaseMessageComponent = require('./BaseMessageComponent');
 const { MessageComponentTypes } = require('../util/Constants');
@@ -31,15 +32,16 @@ class MessageActionRow extends BaseMessageComponent {
      */
     /**
      * @param {MessageActionRow|MessageActionRowOptions} [data={}] MessageActionRow to clone or raw data
+     * @param {Client} [client] The client constructing this MessageActionRow, if provided
      */
-    constructor(data = {}) {
-        var _a;
+    constructor(data = {}, client = null) {
+        var _a, _b;
         super({ type: 'ACTION_ROW' });
         /**
          * The components in this action row
          * @type {MessageActionRowComponent[]}
          */
-        this.components = ((_a = data.components) !== null && _a !== void 0 ? _a : []).map(c => BaseMessageComponent.create(c, null, true));
+        this.components = (_b = (_a = data.components) === null || _a === void 0 ? void 0 : _a.map(c => BaseMessageComponent.create(c, client))) !== null && _b !== void 0 ? _b : [];
     }
     /**
      * Adds components to the action row.
@@ -47,7 +49,7 @@ class MessageActionRow extends BaseMessageComponent {
      * @returns {MessageActionRow}
      */
     addComponents(...components) {
-        this.components.push(...components.flat(Infinity).map(c => BaseMessageComponent.create(c, null, true)));
+        this.components.push(...components.flat(Infinity).map(c => BaseMessageComponent.create(c)));
         return this;
     }
     /**
@@ -58,7 +60,7 @@ class MessageActionRow extends BaseMessageComponent {
      * @returns {MessageActionRow}
      */
     spliceComponents(index, deleteCount, ...components) {
-        this.components.splice(index, deleteCount, ...components.flat(Infinity).map(c => BaseMessageComponent.create(c, null, true)));
+        this.components.splice(index, deleteCount, ...components.flat(Infinity).map(c => BaseMessageComponent.create(c)));
         return this;
     }
     /**

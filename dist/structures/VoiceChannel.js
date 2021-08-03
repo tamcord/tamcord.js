@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const BaseGuildVoiceChannel = require('./BaseGuildVoiceChannel');
 const Permissions = require('../util/Permissions');

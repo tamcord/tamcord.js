@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const GuildChannel = require('./GuildChannel');
 /**
@@ -6,11 +7,12 @@ const GuildChannel = require('./GuildChannel');
  */
 class StoreChannel extends GuildChannel {
     /**
-     * @param {*} guild The guild the store channel is part of
-     * @param {*} data The data for the store channel
+     * @param {Guild} guild The guild the store channel is part of
+     * @param {APIChannel} data The data for the store channel
+     * @param {Client} [client] A safety parameter for the client that instantiated this
      */
-    constructor(guild, data) {
-        super(guild, data);
+    constructor(guild, data, client) {
+        super(guild, data, client);
         /**
          * If the guild considers this channel NSFW
          * @type {boolean}

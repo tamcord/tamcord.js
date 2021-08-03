@@ -1,4 +1,14 @@
+// @ts-nocheck
 'use strict';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 const Base = require('./Base');
 const ThreadMemberFlags = require('../util/ThreadMemberFlags');
 /**
@@ -38,7 +48,7 @@ class ThreadMember extends Base {
         this.flags = new ThreadMemberFlags(data.flags).freeze();
     }
     /**
-     * The guild member that this thread member instance represents
+     * The guild member associated with this thread member
      * @type {?GuildMember}
      * @readonly
      */
@@ -54,7 +64,7 @@ class ThreadMember extends Base {
         return this.joinedTimestamp ? new Date(this.joinedTimestamp) : null;
     }
     /**
-     * The user that this thread member instance represents
+     * The user associated with this thread member
      * @type {?User}
      * @readonly
      */
@@ -70,12 +80,15 @@ class ThreadMember extends Base {
         return !this.thread.archived && this.thread.editable;
     }
     /**
-     * Remove this member from the thread.
+     * Removes this member from the thread.
      * @param {string} [reason] Reason for removing the member
      * @returns {ThreadMember}
      */
     remove(reason) {
-        return this.thread.members.remove(this.id, reason).then(() => this);
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.thread.members.remove(this.id, reason);
+            return this;
+        });
     }
 }
 module.exports = ThreadMember;

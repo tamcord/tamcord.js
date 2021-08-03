@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const { Events } = require('../../../util/Constants');
 module.exports = (client, packet) => {

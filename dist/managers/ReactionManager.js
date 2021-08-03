@@ -1,21 +1,32 @@
+// @ts-nocheck
 'use strict';
-const BaseManager = require('./BaseManager');
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+const CachedManager = require('./CachedManager');
 const MessageReaction = require('../structures/MessageReaction');
 /**
  * Manages API methods for reactions and holds their cache.
- * @extends {BaseManager}
+ * @extends {CachedManager}
  */
-class ReactionManager extends BaseManager {
+class ReactionManager extends CachedManager {
     constructor(message, iterable) {
-        super(message.client, iterable, MessageReaction);
+        super(message.client, MessageReaction, iterable);
         /**
          * The message that this manager belongs to
          * @type {Message}
          */
         this.message = message;
     }
-    add(data, cache) {
-        return super.add(data, cache, { id: data.emoji.id || data.emoji.name, extras: [this.message] });
+    _add(data, cache) {
+        var _a;
+        return super._add(data, cache, { id: (_a = data.emoji.id) !== null && _a !== void 0 ? _a : data.emoji.name, extras: [this.message] });
     }
     /**
      * The reaction cache of this manager
@@ -29,7 +40,7 @@ class ReactionManager extends BaseManager {
      * @typedef {MessageReaction|Snowflake} MessageReactionResolvable
      */
     /**
-     * Resolves a MessageReactionResolvable to a MessageReaction object.
+     * Resolves a {@link MessageReactionResolvable} to a {@link MessageReaction} object.
      * @method resolve
      * @memberof ReactionManager
      * @instance
@@ -37,8 +48,8 @@ class ReactionManager extends BaseManager {
      * @returns {?MessageReaction}
      */
     /**
-     * Resolves a MessageReactionResolvable to a MessageReaction ID string.
-     * @method resolveID
+     * Resolves a {@link MessageReactionResolvable} to a {@link MessageReaction} id.
+     * @method resolveId
      * @memberof ReactionManager
      * @instance
      * @param {MessageReactionResolvable} reaction The MessageReaction to resolve
@@ -49,11 +60,10 @@ class ReactionManager extends BaseManager {
      * @returns {Promise<Message>}
      */
     removeAll() {
-        return this.client.api
-            .channels(this.message.channel.id)
-            .messages(this.message.id)
-            .reactions.delete()
-            .then(() => this.message);
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.client.api.channels(this.message.channel.id).messages(this.message.id).reactions.delete();
+            return this.message;
+        });
     }
 }
 module.exports = ReactionManager;

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8,17 +9,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const BaseManager = require('./BaseManager');
+const CachedManager = require('./CachedManager');
 const { TypeError, Error } = require('../errors');
 const StageInstance = require('../structures/StageInstance');
 const { PrivacyLevels } = require('../util/Constants');
 /**
  * Manages API methods for {@link StageInstance} objects and holds their cache.
- * @extends {BaseManager}
+ * @extends {CachedManager}
  */
-class StageInstanceManager extends BaseManager {
+class StageInstanceManager extends CachedManager {
     constructor(guild, iterable) {
-        super(guild.client, iterable, StageInstance);
+        super(guild.client, StageInstance, iterable);
         /**
          * The guild this manager belongs to
          * @type {Guild}
@@ -32,48 +33,47 @@ class StageInstanceManager extends BaseManager {
      */
     /**
      * Options used to create a stage instance.
-     * @typedef {Object} CreateStageInstanceOptions
-     * @property {StageChannel|Snowflake} channel The stage channel whose instance is to be created
+     * @typedef {Object} StageInstanceCreateOptions
      * @property {string} topic The topic of the stage instance
      * @property {PrivacyLevel|number} [privacyLevel] The privacy level of the stage instance
      */
     /**
      * Creates a new stage instance.
-     * @param {CreateStageInstanceOptions} options The options to create the stage instance
+     * @param {StageChannel|Snowflake} channel The stage channel to associate the created stage instance to
+     * @param {StageInstanceCreateOptions} options The options to create the stage instance
      * @returns {Promise<StageInstance>}
      * @example
      * // Create a stage instance
-     * guild.stageInstances.create({
-     *  channel: '1234567890123456789',
+     * guild.stageInstances.create('1234567890123456789', {
      *  topic: 'A very creative topic',
      *  privacyLevel: 'GUILD_ONLY'
      * })
      *  .then(stageInstance => console.log(stageInstance))
      *  .catch(console.error);
      */
-    create(options) {
+    create(channel, options) {
         return __awaiter(this, void 0, void 0, function* () {
+            const channelId = this.guild.channels.resolveId(channel);
+            if (!channelId)
+                throw new Error('STAGE_CHANNEL_RESOLVE');
             if (typeof options !== 'object')
                 throw new TypeError('INVALID_TYPE', 'options', 'object', true);
-            let { channel, topic, privacyLevel } = options;
-            const channelID = this.guild.channels.resolveID(channel);
-            if (!channelID)
-                throw new Error('STAGE_CHANNEL_RESOLVE');
+            let { topic, privacyLevel } = options;
             if (privacyLevel)
                 privacyLevel = typeof privacyLevel === 'number' ? privacyLevel : PrivacyLevels[privacyLevel];
             const data = yield this.client.api['stage-instances'].post({
                 data: {
-                    channel_id: channelID,
+                    channel_id: channelId,
                     topic,
                     privacy_level: privacyLevel,
                 },
             });
-            return this.add(data);
+            return this._add(data);
         });
     }
     /**
      * Fetches the stage instance associated with a stage channel, if it exists.
-     * @param {StageChannel|Snowflake} channel The stage channel whose instance is to be fetched
+     * @param {StageChannel|Snowflake} channel The stage channel whose associated stage instance is to be fetched
      * @param {BaseFetchOptions} [options] Additional options for this fetch
      * @returns {Promise<StageInstance>}
      * @example
@@ -84,16 +84,16 @@ class StageInstanceManager extends BaseManager {
      */
     fetch(channel, { cache = true, force = false } = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            const channelID = this.guild.channels.resolveID(channel);
-            if (!channelID)
+            const channelId = this.guild.channels.resolveId(channel);
+            if (!channelId)
                 throw new Error('STAGE_CHANNEL_RESOLVE');
             if (!force) {
-                const existing = this.cache.find(stageInstance => stageInstance.channelID === channelID);
+                const existing = this.cache.find(stageInstance => stageInstance.channelId === channelId);
                 if (existing)
                     return existing;
             }
-            const data = yield this.client.api('stage-instances', channelID).get();
-            return this.add(data, cache);
+            const data = yield this.client.api('stage-instances', channelId).get();
+            return this._add(data, cache);
         });
     }
     /**
@@ -104,7 +104,7 @@ class StageInstanceManager extends BaseManager {
      */
     /**
      * Edits an existing stage instance.
-     * @param {StageChannel|Snowflake} channel The stage channel whose instance is to be edited
+     * @param {StageChannel|Snowflake} channel The stage channel whose associated stage instance is to be edited
      * @param {StageInstanceEditOptions} options The options to edit the stage instance
      * @returns {Promise<StageInstance>}
      * @example
@@ -117,13 +117,13 @@ class StageInstanceManager extends BaseManager {
         return __awaiter(this, void 0, void 0, function* () {
             if (typeof options !== 'object')
                 throw new TypeError('INVALID_TYPE', 'options', 'object', true);
-            const channelID = this.guild.channels.resolveID(channel);
-            if (!channelID)
+            const channelId = this.guild.channels.resolveId(channel);
+            if (!channelId)
                 throw new Error('STAGE_CHANNEL_RESOLVE');
             let { topic, privacyLevel } = options;
             if (privacyLevel)
                 privacyLevel = typeof privacyLevel === 'number' ? privacyLevel : PrivacyLevels[privacyLevel];
-            const data = yield this.client.api('stage-instances', channelID).patch({
+            const data = yield this.client.api('stage-instances', channelId).patch({
                 data: {
                     topic,
                     privacy_level: privacyLevel,
@@ -134,20 +134,20 @@ class StageInstanceManager extends BaseManager {
                 clone._patch(data);
                 return clone;
             }
-            return this.add(data);
+            return this._add(data);
         });
     }
     /**
      * Deletes an existing stage instance.
-     * @param {StageChannel|Snowflake} channel The stage channel whose instance is to be deleted
+     * @param {StageChannel|Snowflake} channel The stage channel whose associated stage instance is to be deleted
      * @returns {Promise<void>}
      */
     delete(channel) {
         return __awaiter(this, void 0, void 0, function* () {
-            const channelID = this.guild.channels.resolveID(channel);
-            if (!channelID)
+            const channelId = this.guild.channels.resolveId(channel);
+            if (!channelId)
                 throw new Error('STAGE_CHANNEL_RESOLVE');
-            yield this.client.api('stage-instances', channelID).delete();
+            yield this.client.api('stage-instances', channelId).delete();
         });
     }
 }

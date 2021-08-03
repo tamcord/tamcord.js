@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 
 const ClientApplication = require('../../../structures/ClientApplication');

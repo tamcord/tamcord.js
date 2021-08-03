@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+const { Collection } = require('@discordjs/collection');
 const BaseClient = require('./BaseClient');
 const ActionsManager = require('./actions/ActionsManager');
 const ClientVoiceManager = require('./voice/ClientVoiceManager');
@@ -18,9 +20,12 @@ const ChannelManager = require('../managers/ChannelManager');
 const GuildManager = require('../managers/GuildManager');
 const UserManager = require('../managers/UserManager');
 const ShardClientUtil = require('../sharding/ShardClientUtil');
+const ClientPresence = require('../structures/ClientPresence');
 const GuildPreview = require('../structures/GuildPreview');
 const GuildTemplate = require('../structures/GuildTemplate');
 const Invite = require('../structures/Invite');
+const Sticker = require('../structures/Sticker');
+const StickerPack = require('../structures/StickerPack');
 const VoiceRegion = require('../structures/VoiceRegion');
 const Webhook = require('../structures/Webhook');
 const Widget = require('../structures/Widget');
@@ -28,8 +33,8 @@ const Collection = require('../util/Collection');
 const { Events, DefaultOptions, InviteScopes, browser } = require('../util/Constants');
 const DataResolver = require('../util/DataResolver');
 const Intents = require('../util/Intents');
+const Options = require('../util/Options');
 const Permissions = require('../util/Permissions');
-const Structures = require('../util/Structures');
 /**
  * The main hub for interacting with the Discord API, and the starting point for any bot.
  * @extends {BaseClient}
@@ -39,22 +44,16 @@ class Client extends BaseClient {
      * @param {ClientOptions} options Options for the client
      */
     constructor(options) {
+        var _a;
         super(options);
-        // Obtain shard details from environment or if present, worker threads
-        let data = process.env;
-        try {
-            // Test if worker threads module is present and used
-            data = require('worker_threads').workerData || data;
-        }
-        catch (_a) {
-            // Do nothing
-        }
-        if (this.options.shards === DefaultOptions.shards) {
+        const data = (_a = require('worker_threads').workerData) !== null && _a !== void 0 ? _a : process.env;
+        const defaults = Options.createDefault();
+        if (this.options.shards === defaults.shards) {
             if ('SHARDS' in data) {
                 this.options.shards = JSON.parse(data.SHARDS);
             }
         }
-        if (this.options.shardCount === DefaultOptions.shardCount) {
+        if (this.options.shardCount === defaults.shardCount) {
             if ('SHARD_COUNT' in data) {
                 this.options.shardCount = Number(data.SHARD_COUNT);
             }
@@ -74,6 +73,18 @@ class Client extends BaseClient {
             ];
         }
         this._validateOptions();
+        /**
+         * Functions called when a cache is garbage collected or the Client is destroyed
+         * @type {Set<Function>}
+         * @private
+         */
+        this._cleanups = new Set();
+        /**
+         * The finalizers used to cleanup items.
+         * @type {FinalizationRegistry}
+         * @private
+         */
+        this._finalizers = new FinalizationRegistry(this._finalize.bind(this));
         /**
          * The WebSocket manager of the client
          * @type {WebSocketManager}
@@ -99,25 +110,24 @@ class Client extends BaseClient {
                 ? ShardClientUtil.singleton(this, process.env.SHARDING_MANAGER_MODE)
                 : null;
         /**
-         * All of the {@link User} objects that have been cached at any point, mapped by their IDs
+         * All of the {@link User} objects that have been cached at any point, mapped by their ids
          * @type {UserManager}
          */
         this.users = new UserManager(this);
         /**
-         * All of the guilds the client is currently handling, mapped by their IDs -
+         * All of the guilds the client is currently handling, mapped by their ids -
          * as long as sharding isn't being used, this will be *every* guild the bot is a member of
          * @type {GuildManager}
          */
         this.guilds = new GuildManager(this);
         /**
-         * All of the {@link Channel}s that the client is currently handling, mapped by their IDs -
+         * All of the {@link Channel}s that the client is currently handling, mapped by their ids -
          * as long as sharding isn't being used, this will be *every* channel in *every* guild the bot
          * is a member of. Note that DM channels will not be initially cached, and thus not be present
          * in the Manager without their explicit fetching or use.
          * @type {ChannelManager}
          */
         this.channels = new ChannelManager(this);
-        const ClientPresence = Structures.get('ClientPresence');
         /**
          * The presence of the Client
          * @private
@@ -154,11 +164,12 @@ class Client extends BaseClient {
          */
         this.readyAt = null;
         if (this.options.messageSweepInterval > 0) {
-            this.setInterval(this.sweepMessages.bind(this), this.options.messageSweepInterval * 1000);
+            process.emitWarning('The message sweeping client options are deprecated, use the makeCache option with LimitedCollection instead.', 'DeprecationWarning');
+            this.sweepMessageInterval = setInterval(this.sweepMessages.bind(this), this.options.messageSweepInterval * 1000).unref();
         }
     }
     /**
-     * All custom emojis that the client has access to, mapped by their IDs
+     * All custom emojis that the client has access to, mapped by their ids
      * @type {BaseGuildEmojiManager}
      * @readonly
      */
@@ -177,7 +188,8 @@ class Client extends BaseClient {
      * @readonly
      */
     get readyTimestamp() {
-        return this.readyAt ? this.readyAt.getTime() : null;
+        var _a, _b;
+        return (_b = (_a = this.readyAt) === null || _a === void 0 ? void 0 : _a.getTime()) !== null && _b !== void 0 ? _b : null;
     }
     /**
      * How long it has been since the client last entered the `READY` state in milliseconds
@@ -204,7 +216,7 @@ class Client extends BaseClient {
                 .map((val, i) => (i > 1 ? val.replace(/./g, '*') : val))
                 .join('.')}`);
             if (this.options.presence) {
-                this.options.ws.presence = yield this.presence._parse(this.options.presence);
+                this.options.ws.presence = this.presence._parse(this.options.presence);
             }
             this.emit(Events.DEBUG, 'Preparing to connect to the gateway...');
             try {
@@ -218,11 +230,24 @@ class Client extends BaseClient {
         });
     }
     /**
+     * Returns whether the client has logged in, indicative of being able to access
+     * properties such as `user` and `application`.
+     * @returns {boolean}
+     */
+    isReady() {
+        return this.ws.status === Status.READY;
+    }
+    /**
      * Logs out, terminates the connection to Discord, and destroys the client.
      * @returns {void}
      */
     destroy() {
         super.destroy();
+        for (const fn of this._cleanups)
+            fn();
+        this._cleanups.clear();
+        if (this.sweepMessageInterval)
+            clearInterval(this.sweepMessageInterval);
         this.ws.destroy();
         this.token = null;
     }
@@ -236,11 +261,11 @@ class Client extends BaseClient {
      *   .catch(console.error);
      */
     fetchInvite(invite) {
-        const code = DataResolver.resolveInviteCode(invite);
-        return this.api
-            .invites(code)
-            .get({ query: { with_counts: true, with_expiration: true } })
-            .then(data => new Invite(this, data));
+        return __awaiter(this, void 0, void 0, function* () {
+            const code = DataResolver.resolveInviteCode(invite);
+            const data = yield this.api.invites(code).get({ query: { with_counts: true, with_expiration: true } });
+            return new Invite(this, data);
+        });
     }
     /**
      * Obtains a template from Discord.
@@ -252,15 +277,15 @@ class Client extends BaseClient {
      *   .catch(console.error);
      */
     fetchGuildTemplate(template) {
-        const code = DataResolver.resolveGuildTemplateCode(template);
-        return this.api.guilds
-            .templates(code)
-            .get()
-            .then(data => new GuildTemplate(this, data));
+        return __awaiter(this, void 0, void 0, function* () {
+            const code = DataResolver.resolveGuildTemplateCode(template);
+            const data = yield this.api.guilds.templates(code).get();
+            return new GuildTemplate(this, data);
+        });
     }
     /**
      * Obtains a webhook from Discord.
-     * @param {Snowflake} id ID of the webhook
+     * @param {Snowflake} id The webhook's id
      * @param {string} [token] Token for the webhook
      * @returns {Promise<Webhook>}
      * @example
@@ -269,10 +294,10 @@ class Client extends BaseClient {
      *   .catch(console.error);
      */
     fetchWebhook(id, token) {
-        return this.api
-            .webhooks(id, token)
-            .get()
-            .then(data => new Webhook(this, Object.assign({ token }, data)));
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield this.api.webhooks(id, token).get();
+            return new Webhook(this, Object.assign({ token }, data));
+        });
     }
     /**
      * Obtains the available voice regions from Discord.
@@ -283,12 +308,61 @@ class Client extends BaseClient {
      *   .catch(console.error);
      */
     fetchVoiceRegions() {
-        return this.api.voice.regions.get().then(res => {
+        return __awaiter(this, void 0, void 0, function* () {
+            const apiRegions = yield this.api.voice.regions.get();
             const regions = new Collection();
-            for (const region of res)
+            for (const region of apiRegions)
                 regions.set(region.id, new VoiceRegion(region));
             return regions;
         });
+    }
+    /**
+     * Obtains a sticker from Discord.
+     * @param {Snowflake} id The sticker's id
+     * @returns {Promise<Sticker>}
+     * @example
+     * client.fetchSticker('id')
+     *   .then(sticker => console.log(`Obtained sticker with name: ${sticker.name}`))
+     *   .catch(console.error);
+     */
+    fetchSticker(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield this.api.stickers(id).get();
+            return new Sticker(this, data);
+        });
+    }
+    /**
+     * Obtains the list of sticker packs available to Nitro subscribers from Discord.
+     * @returns {Promise<Collection<Snowflake, StickerPack>>}
+     * @example
+     * client.fetchPremiumStickerPacks()
+     *   .then(packs => console.log(`Available sticker packs are: ${packs.map(pack => pack.name).join(', ')}`))
+     *   .catch(console.error);
+     */
+    fetchPremiumStickerPacks() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield this.api('sticker-packs').get();
+            return new Collection(data.sticker_packs.map(p => [p.id, new StickerPack(this, p)]));
+        });
+    }
+    /**
+     * A last ditch cleanup function for garbage collection.
+     * @param {Function} options.cleanup The function called to GC
+     * @param {string} [options.message] The message to send after a successful GC
+     * @param {string} [options.name] The name of the item being GCed
+     * @private
+     */
+    _finalize({ cleanup, message, name }) {
+        try {
+            cleanup();
+            this._cleanups.delete(cleanup);
+            if (message) {
+                this.emit(Events.DEBUG, message);
+            }
+        }
+        catch (_a) {
+            this.emit(Events.DEBUG, `Garbage collection failed on ${name !== null && name !== void 0 ? name : 'an unknown item'}.`);
+        }
     }
     /**
      * Sweeps all text-based channels' messages and removes the ones older than the max message lifetime.
@@ -318,7 +392,7 @@ class Client extends BaseClient {
             if (!channel.messages)
                 continue;
             channels++;
-            messages += channel.messages.cache.sweep(message => now - (message.editedTimestamp || message.createdTimestamp) > lifetimeMs);
+            messages += channel.messages.cache.sweep(message => { var _a; return now - ((_a = message.editedTimestamp) !== null && _a !== void 0 ? _a : message.createdTimestamp) > lifetimeMs; });
         }
         this.emit(Events.DEBUG, `Swept ${messages} messages older than ${lifetime} seconds in ${channels} text-based channels`);
         return messages;
@@ -329,22 +403,22 @@ class Client extends BaseClient {
      * @returns {Promise<GuildPreview>}
      */
     fetchGuildPreview(guild) {
-        const id = this.guilds.resolveID(guild);
-        if (!id)
-            throw new TypeError('INVALID_TYPE', 'guild', 'GuildResolvable');
-        return this.api
-            .guilds(id)
-            .preview.get()
-            .then(data => new GuildPreview(this, data));
+        return __awaiter(this, void 0, void 0, function* () {
+            const id = this.guilds.resolveId(guild);
+            if (!id)
+                throw new TypeError('INVALID_TYPE', 'guild', 'GuildResolvable');
+            const data = yield this.api.guilds(id).preview.get();
+            return new GuildPreview(this, data);
+        });
     }
     /**
-     * Obtains the widget of a guild from Discord, available for guilds with the widget enabled.
-     * @param {GuildResolvable} guild The guild to fetch the widget for
+     * Obtains the widget data of a guild from Discord, available for guilds with the widget enabled.
+     * @param {GuildResolvable} guild The guild to fetch the widget data for
      * @returns {Promise<Widget>}
      */
-    fetchWidget(guild) {
+    fetchGuildWidget(guild) {
         return __awaiter(this, void 0, void 0, function* () {
-            const id = this.guilds.resolveID(guild);
+            const id = this.guilds.resolveId(guild);
             if (!id)
                 throw new TypeError('INVALID_TYPE', 'guild', 'GuildResolvable');
             const data = yield this.api.guilds(id, 'widget.json').get();
@@ -354,10 +428,10 @@ class Client extends BaseClient {
     /**
      * Options for {@link Client#generateInvite}.
      * @typedef {Object} InviteGenerationOptions
+     * @property {InviteScope[]} scopes Scopes that should be requested
      * @property {PermissionResolvable} [permissions] Permissions to request
      * @property {GuildResolvable} [guild] Guild to preselect
      * @property {boolean} [disableGuildSelect] Whether to disable the guild selection
-     * @property {InviteScope[]} [additionalScopes] Whether any additional scopes should be requested
      */
     /**
      * Generates a link that can be used to invite the bot to a guild.
@@ -365,11 +439,17 @@ class Client extends BaseClient {
      * @returns {string}
      * @example
      * const link = client.generateInvite({
+     *   scopes: ['applications.commands'],
+     * });
+     * console.log(`Generated application invite link: ${link}`);
+     * @example
+     * const link = client.generateInvite({
      *   permissions: [
      *     Permissions.FLAGS.SEND_MESSAGES,
      *     Permissions.FLAGS.MANAGE_GUILD,
      *     Permissions.FLAGS.MENTION_EVERYONE,
      *   ],
+     *   scopes: ['bot'],
      * });
      * console.log(`Generated bot invite link: ${link}`);
      */
@@ -380,8 +460,22 @@ class Client extends BaseClient {
             throw new Error('CLIENT_NOT_READY', 'generate an invite link');
         const query = new URLSearchParams({
             client_id: this.application.id,
-            scope: 'bot',
         });
+        const { scopes } = options;
+        if (typeof scopes === 'undefined') {
+            throw new TypeError('INVITE_MISSING_SCOPES');
+        }
+        if (!Array.isArray(scopes)) {
+            throw new TypeError('INVALID_TYPE', 'scopes', 'Array of Invite Scopes', true);
+        }
+        if (!scopes.some(scope => ['bot', 'applications.commands'].includes(scope))) {
+            throw new TypeError('INVITE_MISSING_SCOPES');
+        }
+        const invalidScope = scopes.find(scope => !InviteScopes.includes(scope));
+        if (invalidScope) {
+            throw new TypeError('INVALID_ELEMENT', 'Array', 'scopes', invalidScope);
+        }
+        query.set('scope', scopes.join(' '));
         if (options.permissions) {
             const permissions = Permissions.resolve(options.permissions);
             if (permissions)
@@ -391,21 +485,10 @@ class Client extends BaseClient {
             query.set('disable_guild_select', true);
         }
         if (options.guild) {
-            const guildID = this.guilds.resolveID(options.guild);
-            if (!guildID)
+            const guildId = this.guilds.resolveId(options.guild);
+            if (!guildId)
                 throw new TypeError('INVALID_TYPE', 'options.guild', 'GuildResolvable');
-            query.set('guild_id', guildID);
-        }
-        if (options.additionalScopes) {
-            const scopes = options.additionalScopes;
-            if (!Array.isArray(scopes)) {
-                throw new TypeError('INVALID_TYPE', 'additionalScopes', 'Array of Invite Scopes', true);
-            }
-            const invalidScope = scopes.find(scope => !InviteScopes.includes(scope));
-            if (invalidScope) {
-                throw new TypeError('INVALID_ELEMENT', 'Array', 'additionalScopes', invalidScope);
-            }
-            query.set('scope', ['bot', ...scopes].join(' '));
+            query.set('guild_id', guildId);
         }
         return `${this.options.http.api}${this.api.oauth2.authorize}?${query}`;
     }
@@ -444,8 +527,8 @@ class Client extends BaseClient {
         }
         if (options.shards && !options.shards.length)
             throw new RangeError('CLIENT_INVALID_PROVIDED_SHARDS');
-        if (typeof options.messageCacheMaxSize !== 'number' || isNaN(options.messageCacheMaxSize)) {
-            throw new TypeError('CLIENT_INVALID_OPTION', 'messageCacheMaxSize', 'a number');
+        if (typeof options.makeCache !== 'function') {
+            throw new TypeError('CLIENT_INVALID_OPTION', 'makeCache', 'a function');
         }
         if (typeof options.messageCacheLifetime !== 'number' || isNaN(options.messageCacheLifetime)) {
             throw new TypeError('CLIENT_INVALID_OPTION', 'The messageCacheLifetime', 'a number');
@@ -473,6 +556,12 @@ class Client extends BaseClient {
         }
         if (typeof options.retryLimit !== 'number' || isNaN(options.retryLimit)) {
             throw new TypeError('CLIENT_INVALID_OPTION', 'retryLimit', 'a number');
+        }
+        if (typeof options.failIfNotExists !== 'boolean') {
+            throw new TypeError('CLIENT_INVALID_OPTION', 'failIfNotExists', 'a boolean');
+        }
+        if (!Array.isArray(options.userAgentSuffix)) {
+            throw new TypeError('CLIENT_INVALID_OPTION', 'userAgentSuffix', 'an array of strings');
         }
         if (typeof options.rejectOnRateLimit !== 'undefined' &&
             !(typeof options.rejectOnRateLimit === 'function' || Array.isArray(options.rejectOnRateLimit))) {

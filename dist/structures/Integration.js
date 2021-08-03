@@ -1,4 +1,14 @@
+// @ts-nocheck
 'use strict';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 const Base = require('./Base');
 const IntegrationApplication = require('./IntegrationApplication');
 /**
@@ -53,7 +63,7 @@ class Integration extends Base {
              * The user for this integration
              * @type {?User}
              */
-            this.user = this.client.users.add(data.user);
+            this.user = this.client.users._add(data.user);
         }
         else {
             this.user = null;
@@ -77,7 +87,7 @@ class Integration extends Base {
      */
     get roles() {
         const roles = this.guild.roles.cache;
-        return roles.filter(role => role.tags && role.tags.integrationID === this.id);
+        return roles.filter(role => { var _a; return ((_a = role.tags) === null || _a === void 0 ? void 0 : _a.integrationId) === this.id; });
     }
     _patch(data) {
         /**
@@ -107,69 +117,21 @@ class Integration extends Base {
         }
     }
     /**
-     * Sync this integration
-     * @returns {Promise<Integration>}
-     */
-    sync() {
-        this.syncing = true;
-        return this.client.api
-            .guilds(this.guild.id)
-            .integrations(this.id)
-            .post()
-            .then(() => {
-            this.syncing = false;
-            this.syncedAt = Date.now();
-            return this;
-        });
-    }
-    /**
-     * The data for editing an integration.
-     * @typedef {Object} IntegrationEditData
-     * @property {number} [expireBehavior] The new behaviour of expiring subscribers
-     * @property {number} [expireGracePeriod] The new grace period before expiring subscribers
-     */
-    /**
-     * Edits this integration.
-     * @param {IntegrationEditData} data The data to edit this integration with
-     * @param {string} reason Reason for editing this integration
-     * @returns {Promise<Integration>}
-     */
-    edit(data, reason) {
-        if ('expireBehavior' in data) {
-            data.expire_behavior = data.expireBehavior;
-            data.expireBehavior = null;
-        }
-        if ('expireGracePeriod' in data) {
-            data.expire_grace_period = data.expireGracePeriod;
-            data.expireGracePeriod = null;
-        }
-        // The option enable_emoticons is only available for Twitch at this moment
-        return this.client.api
-            .guilds(this.guild.id)
-            .integrations(this.id)
-            .patch({ data, reason })
-            .then(() => {
-            this._patch(data);
-            return this;
-        });
-    }
-    /**
      * Deletes this integration.
      * @returns {Promise<Integration>}
      * @param {string} [reason] Reason for deleting this integration
      */
     delete(reason) {
-        return this.client.api
-            .guilds(this.guild.id)
-            .integrations(this.id)
-            .delete({ reason })
-            .then(() => this);
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.client.api.guilds(this.guild.id).integrations(this.id).delete({ reason });
+            return this;
+        });
     }
     toJSON() {
         return super.toJSON({
-            role: 'roleID',
-            guild: 'guildID',
-            user: 'userID',
+            role: 'roleId',
+            guild: 'guildId',
+            user: 'userId',
         });
     }
 }

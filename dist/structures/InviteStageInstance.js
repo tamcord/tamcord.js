@@ -1,23 +1,24 @@
+// @ts-nocheck
 'use strict';
+const { Collection } = require('@discordjs/collection');
 const Base = require('./Base');
-const Collection = require('../util/Collection');
 /**
  * Represents the data about a public {@link StageInstance} in an {@link Invite}.
  * @extends {Base}
  */
 class InviteStageInstance extends Base {
-    constructor(client, data, channelID, guildID) {
+    constructor(client, data, channelId, guildId) {
         super(client);
         /**
-         * The ID of the stage channel this invite is for
+         * The id of the stage channel this invite is for
          * @type {Snowflake}
          */
-        this.channelID = channelID;
+        this.channelId = channelId;
         /**
-         * The guild ID of the stage channel
+         * The stage channel's guild id
          * @type {Snowflake}
          */
-        this.guildID = guildID;
+        this.guildId = guildId;
         /**
          * The members speaking in the stage channel
          * @type {Collection<Snowflake, GuildMember>}
@@ -43,7 +44,7 @@ class InviteStageInstance extends Base {
         this.speakerCount = data.speaker_count;
         this.members.clear();
         for (const rawMember of data.members) {
-            const member = this.guild.members.add(rawMember);
+            const member = this.guild.members._add(rawMember);
             this.members.set(member.id, member);
         }
     }
@@ -53,7 +54,7 @@ class InviteStageInstance extends Base {
      * @readonly
      */
     get channel() {
-        return this.client.channels.resolve(this.channelID);
+        return this.client.channels.resolve(this.channelId);
     }
     /**
      * The guild of the stage channel this invite is for
@@ -61,7 +62,7 @@ class InviteStageInstance extends Base {
      * @readonly
      */
     get guild() {
-        return this.client.guilds.resolve(this.guildID);
+        return this.client.guilds.resolve(this.guildId);
     }
 }
 module.exports = InviteStageInstance;

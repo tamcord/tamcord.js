@@ -1,28 +1,30 @@
+// @ts-nocheck
 'use strict';
 const { Presence } = require('./Presence');
 const { TypeError } = require('../errors');
-const { ActivityTypes, OPCodes } = require('../util/Constants');
+const { ActivityTypes, Opcodes } = require('../util/Constants');
 class ClientPresence extends Presence {
     /**
      * @param {Client} client The instantiating client
      * @param {APIPresence} [data={}] The data for the client presence
      */
     constructor(client, data = {}) {
-        super(client, Object.assign(data, { status: data.status || 'online', user: { id: null } }));
+        var _a;
+        super(client, Object.assign(data, { status: (_a = data.status) !== null && _a !== void 0 ? _a : 'online', user: { id: null } }));
     }
     set(presence) {
         const packet = this._parse(presence);
-        this.patch(packet);
-        if (typeof presence.shardID === 'undefined') {
-            this.client.ws.broadcast({ op: OPCodes.STATUS_UPDATE, d: packet });
+        this._patch(packet);
+        if (typeof presence.shardId === 'undefined') {
+            this.client.ws.broadcast({ op: Opcodes.STATUS_UPDATE, d: packet });
         }
-        else if (Array.isArray(presence.shardID)) {
-            for (const shardID of presence.shardID) {
-                this.client.ws.shards.get(shardID).send({ op: OPCodes.STATUS_UPDATE, d: packet });
+        else if (Array.isArray(presence.shardId)) {
+            for (const shardId of presence.shardId) {
+                this.client.ws.shards.get(shardId).send({ op: Opcodes.STATUS_UPDATE, d: packet });
             }
         }
         else {
-            this.client.ws.shards.get(presence.shardID).send({ op: OPCodes.STATUS_UPDATE, d: packet });
+            this.client.ws.shards.get(presence.shardId).send({ op: Opcodes.STATUS_UPDATE, d: packet });
         }
         return this;
     }
@@ -31,7 +33,7 @@ class ClientPresence extends Presence {
             activities: [],
             afk: typeof afk === 'boolean' ? afk : false,
             since: typeof since === 'number' && !Number.isNaN(since) ? since : null,
-            status: status || this.status,
+            status: status !== null && status !== void 0 ? status : this.status,
         };
         if (activities === null || activities === void 0 ? void 0 : activities.length) {
             for (const [i, activity] of activities.entries()) {

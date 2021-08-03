@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 const Base = require('./Base');
 const { InteractionTypes, MessageComponentTypes } = require('../util/Constants');
@@ -11,47 +12,47 @@ class Interaction extends Base {
         var _a, _b, _c, _d, _e;
         super(client);
         /**
-         * The type of this interaction
+         * The interaction's type
          * @type {InteractionType}
          */
         this.type = InteractionTypes[data.type];
         /**
-         * The ID of this interaction
+         * The interaction's id
          * @type {Snowflake}
          */
         this.id = data.id;
         /**
-         * The token of this interaction
+         * The interaction's token
          * @type {string}
          * @name Interaction#token
          * @readonly
          */
         Object.defineProperty(this, 'token', { value: data.token });
         /**
-         * The ID of the application
+         * The application's id
          * @type {Snowflake}
          */
-        this.applicationID = data.application_id;
+        this.applicationId = data.application_id;
         /**
-         * The ID of the channel this interaction was sent in
+         * The id of the channel this interaction was sent in
          * @type {?Snowflake}
          */
-        this.channelID = (_a = data.channel_id) !== null && _a !== void 0 ? _a : null;
+        this.channelId = (_a = data.channel_id) !== null && _a !== void 0 ? _a : null;
         /**
-         * The ID of the guild this interaction was sent in
+         * The id of the guild this interaction was sent in
          * @type {?Snowflake}
          */
-        this.guildID = (_b = data.guild_id) !== null && _b !== void 0 ? _b : null;
+        this.guildId = (_b = data.guild_id) !== null && _b !== void 0 ? _b : null;
         /**
          * The user which sent this interaction
          * @type {User}
          */
-        this.user = this.client.users.add((_c = data.user) !== null && _c !== void 0 ? _c : data.member.user);
+        this.user = this.client.users._add((_c = data.user) !== null && _c !== void 0 ? _c : data.member.user);
         /**
          * If this interaction was sent in a guild, the member which sent it
-         * @type {?GuildMember|APIGuildMember}
+         * @type {?(GuildMember|APIGuildMember)}
          */
-        this.member = data.member ? (_e = (_d = this.guild) === null || _d === void 0 ? void 0 : _d.members.add(data.member)) !== null && _e !== void 0 ? _e : data.member : null;
+        this.member = data.member ? (_e = (_d = this.guild) === null || _d === void 0 ? void 0 : _d.members._add(data.member)) !== null && _e !== void 0 ? _e : data.member : null;
         /**
          * The version
          * @type {number}
@@ -81,7 +82,7 @@ class Interaction extends Base {
      */
     get channel() {
         var _a;
-        return (_a = this.client.channels.cache.get(this.channelID)) !== null && _a !== void 0 ? _a : null;
+        return (_a = this.client.channels.cache.get(this.channelId)) !== null && _a !== void 0 ? _a : null;
     }
     /**
      * The guild this interaction was sent in
@@ -90,24 +91,31 @@ class Interaction extends Base {
      */
     get guild() {
         var _a;
-        return (_a = this.client.guilds.cache.get(this.guildID)) !== null && _a !== void 0 ? _a : null;
+        return (_a = this.client.guilds.cache.get(this.guildId)) !== null && _a !== void 0 ? _a : null;
     }
     /**
-     * Indicates whether this interaction is a command interaction.
+     * Indicates whether this interaction is received from a guild.
+     * @returns {boolean}
+     */
+    inGuild() {
+        return Boolean(this.guildId && this.member);
+    }
+    /**
+     * Indicates whether this interaction is a {@link CommandInteraction}.
      * @returns {boolean}
      */
     isCommand() {
         return InteractionTypes[this.type] === InteractionTypes.APPLICATION_COMMAND;
     }
     /**
-     * Indicates whether this interaction is a message component interaction.
+     * Indicates whether this interaction is a {@link MessageComponentInteraction}.
      * @returns {boolean}
      */
     isMessageComponent() {
         return InteractionTypes[this.type] === InteractionTypes.MESSAGE_COMPONENT;
     }
     /**
-     * Indicates whether this interaction is a button interaction.
+     * Indicates whether this interaction is a {@link ButtonInteraction}.
      * @returns {boolean}
      */
     isButton() {
@@ -115,7 +123,7 @@ class Interaction extends Base {
             MessageComponentTypes[this.componentType] === MessageComponentTypes.BUTTON);
     }
     /**
-     * Indicates whether this interaction is a select menu interaction.
+     * Indicates whether this interaction is a {@link SelectMenuInteraction}.
      * @returns {boolean}
      */
     isSelectMenu() {

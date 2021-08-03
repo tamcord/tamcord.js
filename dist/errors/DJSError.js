@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 // Heavily inspired by node's `internal/errors` module
 const kCode = Symbol('code');
@@ -37,7 +38,7 @@ function message(key, args) {
         throw new Error(`An invalid error message key was used: ${key}.`);
     if (typeof msg === 'function')
         return msg(...args);
-    if (args === undefined || args.length === 0)
+    if (!(args === null || args === void 0 ? void 0 : args.length))
         return msg;
     args.unshift(msg);
     return String(...args);

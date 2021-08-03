@@ -1,11 +1,12 @@
+// @ts-nocheck
 'use strict';
 const Action = require('./Action');
-const { Events } = require('../../util/Constants');
+const { Events, VoiceBasedChannelTypes } = require('../../util/Constants');
 class MessageReactionRemoveAll extends Action {
     handle(data) {
         // Verify channel
         const channel = this.getChannel(data);
-        if (!channel || channel.type === 'voice')
+        if (!channel || VoiceBasedChannelTypes.includes(channel.type))
             return false;
         // Verify message
         const message = this.getMessage(data, channel);

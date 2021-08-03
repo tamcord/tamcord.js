@@ -1,10 +1,12 @@
+// @ts-nocheck
 'use strict';
 const Action = require('./Action');
-const { Events } = require('../../util/Constants');
+const { Events, VoiceBasedChannelTypes } = require('../../util/Constants');
 class MessageReactionRemoveEmoji extends Action {
     handle(data) {
+        var _a;
         const channel = this.getChannel(data);
-        if (!channel || channel.type === 'voice')
+        if (!channel || VoiceBasedChannelTypes.includes(channel.type))
             return false;
         const message = this.getMessage(data, channel);
         if (!message)
@@ -13,7 +15,7 @@ class MessageReactionRemoveEmoji extends Action {
         if (!reaction)
             return false;
         if (!message.partial)
-            message.reactions.cache.delete(reaction.emoji.id || reaction.emoji.name);
+            message.reactions.cache.delete((_a = reaction.emoji.id) !== null && _a !== void 0 ? _a : reaction.emoji.name);
         /**
          * Emitted when a bot removes an emoji reaction from a cached message.
          * @event Client#messageReactionRemoveEmoji

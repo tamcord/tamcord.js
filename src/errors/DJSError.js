@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 
 // Heavily inspired by node's `internal/errors` module

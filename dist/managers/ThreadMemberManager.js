@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8,17 +9,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const BaseManager = require('./BaseManager');
+const { Collection } = require('@discordjs/collection');
+const CachedManager = require('./CachedManager');
 const { TypeError } = require('../errors');
 const ThreadMember = require('../structures/ThreadMember');
-const Collection = require('../util/Collection');
 /**
  * Manages API methods for GuildMembers and stores their cache.
- * @extends {BaseManager}
+ * @extends {CachedManager}
  */
-class ThreadMemberManager extends BaseManager {
+class ThreadMemberManager extends CachedManager {
     constructor(thread, iterable) {
-        super(thread.client, iterable, ThreadMember);
+        super(thread.client, ThreadMember, iterable);
         /**
          * The thread this manager belongs to
          * @type {ThreadChannel}
@@ -48,7 +49,7 @@ class ThreadMemberManager extends BaseManager {
      * @typedef {ThreadMember|UserResolvable} ThreadMemberResolvable
      */
     /**
-     * Resolves a ThreadMemberResolvable to a ThreadMember object.
+     * Resolves a {@link ThreadMemberResolvable} to a {@link ThreadMember} object.
      * @param {ThreadMemberResolvable} member The user that is part of the thread
      * @returns {?GuildMember}
      */
@@ -56,21 +57,21 @@ class ThreadMemberManager extends BaseManager {
         const memberResolvable = super.resolve(member);
         if (memberResolvable)
             return memberResolvable;
-        const userResolvable = this.client.users.resolveID(member);
+        const userResolvable = this.client.users.resolveId(member);
         if (userResolvable)
             return super.resolve(userResolvable);
         return null;
     }
     /**
-     * Resolves a ThreadMemberResolvable to a thread member ID string.
+     * Resolves a {@link ThreadMemberResolvable} to a {@link ThreadMember} id string.
      * @param {ThreadMemberResolvable} member The user that is part of the guild
      * @returns {?Snowflake}
      */
-    resolveID(member) {
-        const memberResolvable = super.resolveID(member);
+    resolveId(member) {
+        const memberResolvable = super.resolveId(member);
         if (memberResolvable)
             return memberResolvable;
-        const userResolvable = this.client.users.resolveID(member);
+        const userResolvable = this.client.users.resolveId(member);
         return this.cache.has(userResolvable) ? userResolvable : null;
     }
     /**
@@ -80,13 +81,13 @@ class ThreadMemberManager extends BaseManager {
      * @returns {Promise<Snowflake>}
      */
     add(member, reason) {
-        const id = member === '@me' ? member : this.client.users.resolveID(member);
-        if (!id)
-            return Promise.reject(new TypeError('INVALID_TYPE', 'member', 'UserResolvable'));
-        return this.client.api
-            .channels(this.thread.id, 'thread-members', id)
-            .put({ reason })
-            .then(() => id);
+        return __awaiter(this, void 0, void 0, function* () {
+            const id = member === '@me' ? member : this.client.users.resolveId(member);
+            if (!id)
+                throw new TypeError('INVALID_TYPE', 'member', 'UserResolvable');
+            yield this.client.api.channels(this.thread.id, 'thread-members', id).put({ reason });
+            return id;
+        });
     }
     /**
      * Remove a user from the thread.
@@ -95,10 +96,10 @@ class ThreadMemberManager extends BaseManager {
      * @returns {Promise<Snowflake>}
      */
     remove(id, reason) {
-        return this.client.api
-            .channels(this.thread.id, 'thread-members', id)
-            .delete({ reason })
-            .then(() => id);
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.client.api.channels(this.thread.id, 'thread-members', id).delete({ reason });
+            return id;
+        });
     }
     /**
      * Fetches member(s) for the thread from Discord, requires access to the `GUILD_MEMBERS` gateway intent.

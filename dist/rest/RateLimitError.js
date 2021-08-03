@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 /**
  * Represents a RateLimit error from a request.

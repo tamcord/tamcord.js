@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -8,28 +9,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+const Base = require('./Base');
 const Role = require('./Role');
 const { TypeError } = require('../errors');
 const { OverwriteTypes } = require('../util/Constants');
 const Permissions = require('../util/Permissions');
 /**
  * Represents a permission overwrite for a role or member in a guild channel.
+ * @extends {Base}
  */
-class PermissionOverwrites {
-    constructor(guildChannel, data) {
+class PermissionOverwrites extends Base {
+    constructor(client, data, channel) {
+        super(client);
         /**
          * The GuildChannel this overwrite is for
          * @name PermissionOverwrites#channel
          * @type {GuildChannel}
          * @readonly
          */
-        Object.defineProperty(this, 'channel', { value: guildChannel });
+        Object.defineProperty(this, 'channel', { value: channel });
         if (data)
             this._patch(data);
     }
     _patch(data) {
         /**
-         * The ID of this overwrite, either a user ID or a role ID
+         * The overwrite's id, either a {@link User} or a {@link Role} id
          * @type {Snowflake}
          */
         this.id = data.id;
@@ -37,7 +41,7 @@ class PermissionOverwrites {
          * The type of this overwrite
          * @type {OverwriteType}
          */
-        this.type = OverwriteTypes[data.type];
+        this.type = typeof data.type === 'number' ? OverwriteTypes[data.type] : data.type;
         /**
          * The permissions that are denied for the user or role.
          * @type {Readonly<Permissions>}
@@ -50,33 +54,21 @@ class PermissionOverwrites {
         this.allow = new Permissions(BigInt(data.allow)).freeze();
     }
     /**
-     * Updates this permissionOverwrites.
+     * Edits this Permission Overwrite.
      * @param {PermissionOverwriteOptions} options The options for the update
      * @param {string} [reason] Reason for creating/editing this overwrite
      * @returns {Promise<PermissionOverwrites>}
      * @example
      * // Update permission overwrites
-     * permissionOverwrites.update({
+     * permissionOverwrites.edit({
      *   SEND_MESSAGES: false
      * })
      *   .then(channel => console.log(channel.permissionOverwrites.get(message.author.id)))
      *   .catch(console.error);
      */
-    update(options, reason) {
+    edit(options, reason) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { allow, deny } = this.constructor.resolveOverwriteOptions(options, this);
-            yield this.channel.client.api
-                .channels(this.channel.id)
-                .permissions(this.id)
-                .put({
-                data: {
-                    id: this.id,
-                    type: OverwriteTypes[this.type],
-                    allow,
-                    deny,
-                },
-                reason,
-            });
+            yield this.channel.permissionOverwrites.upsert(this.id, options, { type: OverwriteTypes[this.type], reason }, this);
             return this;
         });
     }
@@ -87,7 +79,7 @@ class PermissionOverwrites {
      */
     delete(reason) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.channel.client.api.channels(this.channel.id).permissions(this.id).delete({ reason });
+            yield this.channel.permissionOverwrites.delete(this.id, reason);
             return this;
         });
     }
@@ -126,16 +118,16 @@ class PermissionOverwrites {
         deny = new Permissions(deny);
         for (const [perm, value] of Object.entries(options)) {
             if (value === true) {
-                allow.add(Permissions.FLAGS[perm]);
-                deny.remove(Permissions.FLAGS[perm]);
+                allow.add(perm);
+                deny.remove(perm);
             }
             else if (value === false) {
-                allow.remove(Permissions.FLAGS[perm]);
-                deny.add(Permissions.FLAGS[perm]);
+                allow.remove(perm);
+                deny.add(perm);
             }
             else if (value === null) {
-                allow.remove(Permissions.FLAGS[perm]);
-                deny.remove(Permissions.FLAGS[perm]);
+                allow.remove(perm);
+                deny.remove(perm);
             }
         }
         return { allow, deny };
@@ -167,7 +159,7 @@ class PermissionOverwrites {
      * @returns {RawOverwriteData}
      */
     static resolve(overwrite, guild) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         if (overwrite instanceof this)
             return overwrite.toJSON();
         if (typeof overwrite.id === 'string' && overwrite.type in OverwriteTypes) {
@@ -178,15 +170,15 @@ class PermissionOverwrites {
                 deny: Permissions.resolve((_b = overwrite.deny) !== null && _b !== void 0 ? _b : Permissions.defaultBit).toString(),
             };
         }
-        const userOrRole = guild.roles.resolve(overwrite.id) || guild.client.users.resolve(overwrite.id);
+        const userOrRole = (_c = guild.roles.resolve(overwrite.id)) !== null && _c !== void 0 ? _c : guild.client.users.resolve(overwrite.id);
         if (!userOrRole)
             throw new TypeError('INVALID_TYPE', 'parameter', 'User nor a Role');
         const type = userOrRole instanceof Role ? OverwriteTypes.role : OverwriteTypes.member;
         return {
             id: userOrRole.id,
             type,
-            allow: Permissions.resolve((_c = overwrite.allow) !== null && _c !== void 0 ? _c : Permissions.defaultBit).toString(),
-            deny: Permissions.resolve((_d = overwrite.deny) !== null && _d !== void 0 ? _d : Permissions.defaultBit).toString(),
+            allow: Permissions.resolve((_d = overwrite.allow) !== null && _d !== void 0 ? _d : Permissions.defaultBit).toString(),
+            deny: Permissions.resolve((_e = overwrite.deny) !== null && _e !== void 0 ? _e : Permissions.defaultBit).toString(),
         };
     }
 }

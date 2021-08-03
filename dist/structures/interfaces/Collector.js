@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -21,8 +22,8 @@ var __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _ar
     function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
 };
 const EventEmitter = require('events');
+const { Collection } = require('@discordjs/collection');
 const { TypeError } = require('../../errors');
-const Collection = require('../../util/Collection');
 const Util = require('../../util/Util');
 /**
  * Filter to be applied to the collector.
@@ -93,9 +94,9 @@ class Collector extends EventEmitter {
         this.handleCollect = this.handleCollect.bind(this);
         this.handleDispose = this.handleDispose.bind(this);
         if (options.time)
-            this._timeout = this.client.setTimeout(() => this.stop('time'), options.time);
+            this._timeout = setTimeout(() => this.stop('time'), options.time).unref();
         if (options.idle)
-            this._idletimeout = this.client.setTimeout(() => this.stop('idle'), options.idle);
+            this._idletimeout = setTimeout(() => this.stop('idle'), options.idle).unref();
     }
     /**
      * Call this to handle an event as a collectable element. Accepts any event data as parameters.
@@ -105,7 +106,7 @@ class Collector extends EventEmitter {
      */
     handleCollect(...args) {
         return __awaiter(this, void 0, void 0, function* () {
-            const collect = this.collect(...args);
+            const collect = yield this.collect(...args);
             if (collect && (yield this.filter(...args, this.collected))) {
                 this.collected.set(collect, args[0]);
                 /**
@@ -115,8 +116,8 @@ class Collector extends EventEmitter {
                  */
                 this.emit('collect', ...args);
                 if (this._idletimeout) {
-                    this.client.clearTimeout(this._idletimeout);
-                    this._idletimeout = this.client.setTimeout(() => this.stop('idle'), this.options.idle);
+                    clearTimeout(this._idletimeout);
+                    this._idletimeout = setTimeout(() => this.stop('idle'), this.options.idle).unref();
                 }
             }
             this.checkEnd();
@@ -182,11 +183,11 @@ class Collector extends EventEmitter {
         if (this.ended)
             return;
         if (this._timeout) {
-            this.client.clearTimeout(this._timeout);
+            clearTimeout(this._timeout);
             this._timeout = null;
         }
         if (this._idletimeout) {
-            this.client.clearTimeout(this._idletimeout);
+            clearTimeout(this._idletimeout);
             this._idletimeout = null;
         }
         this.ended = true;
@@ -211,12 +212,12 @@ class Collector extends EventEmitter {
      */
     resetTimer({ time, idle } = {}) {
         if (this._timeout) {
-            this.client.clearTimeout(this._timeout);
-            this._timeout = this.client.setTimeout(() => this.stop('time'), time || this.options.time);
+            clearTimeout(this._timeout);
+            this._timeout = setTimeout(() => this.stop('time'), time !== null && time !== void 0 ? time : this.options.time).unref();
         }
         if (this._idletimeout) {
-            this.client.clearTimeout(this._idletimeout);
-            this._idletimeout = this.client.setTimeout(() => this.stop('idle'), idle || this.options.idle);
+            clearTimeout(this._idletimeout);
+            this._idletimeout = setTimeout(() => this.stop('idle'), idle !== null && idle !== void 0 ? idle : this.options.idle).unref();
         }
     }
     /**
@@ -265,11 +266,18 @@ class Collector extends EventEmitter {
     }
     /* eslint-disable no-empty-function */
     /**
+     * The reason this collector has ended with, or null if it hasn't ended yet
+     * @type {?string}
+     * @readonly
+     * @abstract
+     */
+    get endReason() { }
+    /**
      * Handles incoming events from the `handleCollect` function. Returns null if the event should not
      * be collected, or returns an object describing the data that should be stored.
      * @see Collector#handleCollect
      * @param {...*} args Any args the event listener emits
-     * @returns {?{key, value}} Data to insert into collection, if any
+     * @returns {?(*|Promise<?*>)} Data to insert into collection, if any
      * @abstract
      */
     collect() { }

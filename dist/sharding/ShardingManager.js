@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -11,9 +12,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 const EventEmitter = require('events');
 const fs = require('fs');
 const path = require('path');
+const { Collection } = require('@discordjs/collection');
 const Shard = require('./Shard');
 const { Error, TypeError, RangeError } = require('../errors');
-const Collection = require('../util/Collection');
 const Util = require('../util/Util');
 /**
  * This is a utility class that makes multi-process sharding of a bot an easy and painless experience.
@@ -48,6 +49,7 @@ class ShardingManager extends EventEmitter {
      * @param {ShardingManagerOptions} [options] Options for the sharding manager
      */
     constructor(file, options = {}) {
+        var _a, _b, _c;
         super();
         options = Util.mergeDefault({
             totalShards: 'auto',
@@ -73,15 +75,15 @@ class ShardingManager extends EventEmitter {
          * List of shards this sharding manager spawns
          * @type {string|number[]}
          */
-        this.shardList = options.shardList || 'auto';
+        this.shardList = (_a = options.shardList) !== null && _a !== void 0 ? _a : 'auto';
         if (this.shardList !== 'auto') {
             if (!Array.isArray(this.shardList)) {
                 throw new TypeError('CLIENT_INVALID_OPTION', 'shardList', 'an array.');
             }
             this.shardList = [...new Set(this.shardList)];
             if (this.shardList.length < 1)
-                throw new RangeError('CLIENT_INVALID_OPTION', 'shardList', 'at least 1 ID.');
-            if (this.shardList.some(shardID => typeof shardID !== 'number' || isNaN(shardID) || !Number.isInteger(shardID) || shardID < 0)) {
+                throw new RangeError('CLIENT_INVALID_OPTION', 'shardList', 'at least 1 id.');
+            if (this.shardList.some(shardId => typeof shardId !== 'number' || isNaN(shardId) || !Number.isInteger(shardId) || shardId < 0)) {
                 throw new TypeError('CLIENT_INVALID_OPTION', 'shardList', 'an array of positive integers.');
             }
         }
@@ -127,7 +129,7 @@ class ShardingManager extends EventEmitter {
          * Token to use for obtaining the automatic shard count, and passing to shards
          * @type {?string}
          */
-        this.token = options.token ? options.token.replace(/^Bot\s*/i, '') : null;
+        this.token = (_c = (_b = options.token) === null || _b === void 0 ? void 0 : _b.replace(/^Bot\s*/i, '')) !== null && _c !== void 0 ? _c : null;
         /**
          * A collection of shards that this manager has spawned
          * @type {Collection<number, Shard>}
@@ -140,7 +142,7 @@ class ShardingManager extends EventEmitter {
     /**
      * Creates a single shard.
      * <warn>Using this method is usually not necessary if you use the spawn method.</warn>
-     * @param {number} [id=this.shards.size] ID of the shard to create
+     * @param {number} [id=this.shards.size] Id of the shard to create
      * <info>This is usually not necessary to manually specify.</info>
      * @returns {Shard} Note that the created shard needs to be explicitly spawned using its spawn method.
      */
@@ -192,13 +194,13 @@ class ShardingManager extends EventEmitter {
             if (this.totalShards === 'auto' || this.totalShards !== amount) {
                 this.totalShards = amount;
             }
-            if (this.shardList.some(shardID => shardID >= amount)) {
-                throw new RangeError('CLIENT_INVALID_OPTION', 'Amount of shards', 'bigger than the highest shardID in the shardList option.');
+            if (this.shardList.some(shardId => shardId >= amount)) {
+                throw new RangeError('CLIENT_INVALID_OPTION', 'Amount of shards', 'bigger than the highest shardId in the shardList option.');
             }
             // Spawn the shards
-            for (const shardID of this.shardList) {
+            for (const shardId of this.shardList) {
                 const promises = [];
-                const shard = this.createShard(shardID);
+                const shard = this.createShard(shardId);
                 promises.push(shard.spawn(timeout));
                 if (delay > 0 && this.shards.size !== this.shardList.length)
                     promises.push(Util.delayFor(delay));

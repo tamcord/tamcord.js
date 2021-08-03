@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 /**
  * Represents a HTTP error from a request.
@@ -16,7 +17,7 @@ class HTTPError extends Error {
          * HTTP error code returned from the request
          * @type {number}
          */
-        this.code = code || 500;
+        this.code = code !== null && code !== void 0 ? code : 500;
         /**
          * The HTTP method used for the request
          * @type {string}

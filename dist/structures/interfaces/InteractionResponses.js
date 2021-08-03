@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -11,7 +12,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 const { Error } = require('../../errors');
 const { InteractionResponseTypes } = require('../../util/Constants');
 const MessageFlags = require('../../util/MessageFlags');
-const APIMessage = require('../APIMessage');
+const MessagePayload = require('../MessagePayload');
 /**
  * Interface for classes that support shared interaction response types.
  * @interface
@@ -21,16 +22,28 @@ class InteractionResponses {
      * Options for deferring the reply to an {@link Interaction}.
      * @typedef {Object} InteractionDeferOptions
      * @property {boolean} [ephemeral] Whether the reply should be ephemeral
+     * @property {boolean} [fetchReply] Whether to fetch the reply
+     */
+    /**
+     * Options for deferring and updating the reply to a {@link ButtonInteraction}.
+     * @typedef {Object} InteractionDeferUpdateOptions
+     * @property {boolean} [fetchReply] Whether to fetch the reply
      */
     /**
      * Options for a reply to an {@link Interaction}.
      * @typedef {BaseMessageOptions} InteractionReplyOptions
      * @property {boolean} [ephemeral] Whether the reply should be ephemeral
+     * @property {boolean} [fetchReply] Whether to fetch the reply
+     */
+    /**
+     * Options for updating the message received from a {@link ButtonInteraction}.
+     * @typedef {MessageEditOptions} InteractionUpdateOptions
+     * @property {boolean} [fetchReply] Whether to fetch the reply
      */
     /**
      * Defers the reply to this interaction.
      * @param {InteractionDeferOptions} [options] Options for deferring the reply to this interaction
-     * @returns {Promise<void>}
+     * @returns {Promise<Message|APIMessage|void>}
      * @example
      * // Defer the reply to this interaction
      * interaction.defer()
@@ -42,37 +55,41 @@ class InteractionResponses {
      *   .then(console.log)
      *   .catch(console.error);
      */
-    defer({ ephemeral } = {}) {
+    defer(options = {}) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (this.deferred || this.replied)
                 throw new Error('INTERACTION_ALREADY_REPLIED');
-            this.ephemeral = ephemeral !== null && ephemeral !== void 0 ? ephemeral : false;
+            if (options.fetchReply && options.ephemeral)
+                throw new Error('INTERACTION_FETCH_EPHEMERAL');
+            this.ephemeral = (_a = options.ephemeral) !== null && _a !== void 0 ? _a : false;
             yield this.client.api.interactions(this.id, this.token).callback.post({
                 data: {
                     type: InteractionResponseTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
                     data: {
-                        flags: ephemeral ? MessageFlags.FLAGS.EPHEMERAL : undefined,
+                        flags: options.ephemeral ? MessageFlags.FLAGS.EPHEMERAL : undefined,
                     },
                 },
             });
             this.deferred = true;
+            return options.fetchReply ? this.fetchReply() : undefined;
         });
     }
     /**
      * Creates a reply to this interaction.
-     * @param {string|APIMessage|InteractionReplyOptions} options The options for the reply
-     * @returns {Promise<void>}
+     * @param {string|MessagePayload|InteractionReplyOptions} options The options for the reply
+     * @returns {Promise<Message|APIMessage|void>}
      * @example
      * // Reply to the interaction with an embed
      * const embed = new MessageEmbed().setDescription('Pong!');
      *
-     * interaction.reply(embed)
-     *   .then(console.log)
+     * interaction.reply({ embeds: [embed] })
+     *   .then(() => console.log('Reply sent.'))
      *   .catch(console.error);
      * @example
      * // Create an ephemeral reply
      * interaction.reply({ content: 'Pong!', ephemeral: true })
-     *   .then(console.log)
+     *   .then(() => console.log('Reply sent.'))
      *   .catch(console.error);
      */
     reply(options) {
@@ -80,13 +97,15 @@ class InteractionResponses {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.deferred || this.replied)
                 throw new Error('INTERACTION_ALREADY_REPLIED');
+            if (options.fetchReply && options.ephemeral)
+                throw new Error('INTERACTION_FETCH_EPHEMERAL');
             this.ephemeral = (_a = options.ephemeral) !== null && _a !== void 0 ? _a : false;
-            let apiMessage;
-            if (options instanceof APIMessage)
-                apiMessage = options;
+            let messagePayload;
+            if (options instanceof MessagePayload)
+                messagePayload = options;
             else
-                apiMessage = APIMessage.create(this, options);
-            const { data, files } = yield apiMessage.resolveData().resolveFiles();
+                messagePayload = MessagePayload.create(this, options);
+            const { data, files } = yield messagePayload.resolveData().resolveFiles();
             yield this.client.api.interactions(this.id, this.token).callback.post({
                 data: {
                     type: InteractionResponseTypes.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -95,12 +114,13 @@ class InteractionResponses {
                 files,
             });
             this.replied = true;
+            return options.fetchReply ? this.fetchReply() : undefined;
         });
     }
     /**
      * Fetches the initial reply to this interaction.
      * @see Webhook#fetchMessage
-     * @returns {Promise<Message|APIMessageRaw>}
+     * @returns {Promise<Message|APIMessage>}
      * @example
      * // Fetch the reply to this interaction
      * interaction.fetchReply()
@@ -115,8 +135,8 @@ class InteractionResponses {
     /**
      * Edits the initial reply to this interaction.
      * @see Webhook#editMessage
-     * @param {string|APIMessage|WebhookEditMessageOptions} options The new options for the message
-     * @returns {Promise<Message|APIMessageRaw>}
+     * @param {string|MessagePayload|WebhookEditMessageOptions} options The new options for the message
+     * @returns {Promise<Message|APIMessage>}
      * @example
      * // Edit the reply to this interaction
      * interaction.editReply('New content')
@@ -151,41 +171,46 @@ class InteractionResponses {
     }
     /**
      * Send a follow-up message to this interaction.
-     * @param {string|APIMessage|InteractionReplyOptions} options The options for the reply
-     * @returns {Promise<Message|APIMessageRaw>}
+     * @param {string|MessagePayload|InteractionReplyOptions} options The options for the reply
+     * @returns {Promise<Message|APIMessage>}
      */
     followUp(options) {
         return this.webhook.send(options);
     }
     /**
-     * Defers an update to the message to which the component was attached
-     * @returns {Promise<void>}
+     * Defers an update to the message to which the component was attached.
+     * @param {InteractionDeferUpdateOptions} [options] Options for deferring the update to this interaction
+     * @returns {Promise<Message|APIMessage|void>}
      * @example
      * // Defer updating and reset the component's loading state
      * interaction.deferUpdate()
      *   .then(console.log)
      *   .catch(console.error);
      */
-    deferUpdate() {
+    deferUpdate(options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.deferred || this.replied)
                 throw new Error('INTERACTION_ALREADY_REPLIED');
+            if (options.fetchReply && new MessageFlags(this.message.flags).has(MessageFlags.FLAGS.EPHEMERAL)) {
+                throw new Error('INTERACTION_FETCH_EPHEMERAL');
+            }
             yield this.client.api.interactions(this.id, this.token).callback.post({
                 data: {
                     type: InteractionResponseTypes.DEFERRED_MESSAGE_UPDATE,
                 },
             });
             this.deferred = true;
+            return options.fetchReply ? this.fetchReply() : undefined;
         });
     }
     /**
-     * Updates the original message whose button was pressed
-     * @param {string|APIMessage|WebhookEditMessageOptions} options The options for the reply
-     * @returns {Promise<void>}
+     * Updates the original message of the component on which the interaction was received on.
+     * @param {string|MessagePayload|InteractionUpdateOptions} options The options for the updated message
+     * @returns {Promise<Message|APIMessage|void>}
      * @example
      * // Remove the components from the message
      * interaction.update({
-     *   content: "A button was clicked",
+     *   content: "A component interaction was received",
      *   components: []
      * })
      *   .then(console.log)
@@ -195,12 +220,15 @@ class InteractionResponses {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.deferred || this.replied)
                 throw new Error('INTERACTION_ALREADY_REPLIED');
-            let apiMessage;
-            if (options instanceof APIMessage)
-                apiMessage = options;
+            if (options.fetchReply && new MessageFlags(this.message.flags).has(MessageFlags.FLAGS.EPHEMERAL)) {
+                throw new Error('INTERACTION_FETCH_EPHEMERAL');
+            }
+            let messagePayload;
+            if (options instanceof MessagePayload)
+                messagePayload = options;
             else
-                apiMessage = APIMessage.create(this, options);
-            const { data, files } = yield apiMessage.resolveData().resolveFiles();
+                messagePayload = MessagePayload.create(this, options);
+            const { data, files } = yield messagePayload.resolveData().resolveFiles();
             yield this.client.api.interactions(this.id, this.token).callback.post({
                 data: {
                     type: InteractionResponseTypes.UPDATE_MESSAGE,
@@ -209,6 +237,7 @@ class InteractionResponses {
                 files,
             });
             this.replied = true;
+            return options.fetchReply ? this.fetchReply() : undefined;
         });
     }
     static applyToClass(structure, ignore = []) {
