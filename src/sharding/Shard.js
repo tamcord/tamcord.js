@@ -2,11 +2,15 @@
 'use strict';
 
 const EventEmitter = require('events');
-const path = require('path');
 const { Error } = require('../errors');
 const Util = require('../util/Util');
 let childProcess = null;
 let Worker = null;
+
+var path;
+try {
+  path = require('path');
+} catch (e) {}
 
 /**
  * A self-contained shard created by the {@link ShardingManager}. Each one has a {@link ChildProcess} that contains

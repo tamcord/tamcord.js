@@ -2,13 +2,17 @@
 'use strict';
 
 const EventEmitter = require('events');
-const fs = require('fs');
-const path = require('path');
 const { Collection } = require('@discordjs/collection');
 const Shard = require('./Shard');
 const { Error, TypeError, RangeError } = require('../errors');
 const Util = require('../util/Util');
 
+var path;
+var fs;
+try {
+  fs = require('fs');
+  path = require('path');
+} catch (e) {}
 /**
  * This is a utility class that makes multi-process sharding of a bot an easy and painless experience.
  * It works by spawning a self-contained {@link ChildProcess} or {@link Worker} for each individual shard, each

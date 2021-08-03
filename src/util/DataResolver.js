@@ -1,15 +1,20 @@
 // @ts-nocheck
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const stream = require('stream');
-const fetch = require('node-fetch');
+const fetch = globalThis.fetch || require('node-fetch');
 const { Error: DiscordError, TypeError } = require('../errors');
 const Invite = require('../structures/Invite');
 const { browser } = require('../util/Constants');
 const Util = require('../util/Util');
 
+var stream;
+var path;
+var fs;
+try {
+  stream = require('stream');
+  fs = require('fs');
+  path = require('path');
+} catch (e) {}
 /**
  * The DataResolver identifies different objects and tries to resolve a specific piece of information from them.
  * @private

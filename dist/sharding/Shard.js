@@ -10,11 +10,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const EventEmitter = require('events');
-const path = require('path');
 const { Error } = require('../errors');
 const Util = require('../util/Util');
 let childProcess = null;
 let Worker = null;
+var path;
+try {
+    path = require('path');
+}
+catch (e) { }
 /**
  * A self-contained shard created by the {@link ShardingManager}. Each one has a {@link ChildProcess} that contains
  * an instance of the bot and its {@link Client}. When its child process/worker exits for any reason, the shard will
