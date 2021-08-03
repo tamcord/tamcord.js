@@ -135,7 +135,7 @@ declare enum WebhookTypes {
 
 type Awaited<T> = T | Promise<T>;
 
-declare module 'discord.js' {
+declare module 'fosscord.js' {
   import BaseCollection from '@discordjs/collection';
   import { ChildProcess } from 'child_process';
   import {

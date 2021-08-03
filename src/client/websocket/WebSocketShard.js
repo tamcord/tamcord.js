@@ -12,7 +12,10 @@ let zlib;
 
 try {
   zlib = require('zlib-sync');
-} catch {} // eslint-disable-line no-empty
+  if (Object.keys(zlib).length === 0) zlib = null;
+} catch {
+  lib = null;
+} // eslint-disable-line no-empty
 
 /**
  * Represents a Shard's WebSocket connection

@@ -1,15 +1,16 @@
 {
+  "include": ["./src/"],
   "compilerOptions": {
     "strict": true,
+    "allowJs": true,
     "moduleResolution": "node",
     "declaration": false,
     "removeComments": false,
     "alwaysStrict": true,
     "pretty": false,
+    "outDir": "dist",
     "module": "commonjs",
-    "target": "es2019",
-    "types": ["fosscord.js"],
-    "lib": ["esnext", "esnext.array", "esnext.asynciterable", "esnext.intl", "esnext.symbol"],
+    "target": "ES6",
     "sourceMap": false,
     "skipDefaultLibCheck": true,
     "skipLibCheck": true
