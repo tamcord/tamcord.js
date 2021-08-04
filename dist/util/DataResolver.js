@@ -25,9 +25,9 @@ var stream;
 var path;
 var fs;
 try {
-    stream = require('stream');
-    fs = require('fs');
-    path = require('path');
+    // stream = require('stream');
+    // fs = require('fs');
+    // path = require('path');
 }
 catch (e) { }
 /**

@@ -15,7 +15,7 @@ const {
   TimestampStyles,
   underscore,
   spoiler,
-} = require('@discordjs/builders');
+} = require('fosscord.js-builders');
 
 /**
  * Contains various Discord-specific functions for formatting messages.

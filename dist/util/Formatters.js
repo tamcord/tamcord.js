@@ -1,6 +1,6 @@
 // @ts-nocheck
 'use strict';
-const { blockQuote, bold, codeBlock, hideLinkEmbed, hyperlink, inlineCode, italic, quote, strikethrough, time, TimestampStyles, underscore, spoiler, } = require('@discordjs/builders');
+const { blockQuote, bold, codeBlock, hideLinkEmbed, hyperlink, inlineCode, italic, quote, strikethrough, time, TimestampStyles, underscore, spoiler, } = require('fosscord.js-builders');
 /**
  * Contains various Discord-specific functions for formatting messages.
  */

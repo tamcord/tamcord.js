@@ -11,10 +11,11 @@ var stream;
 var path;
 var fs;
 try {
-  stream = require('stream');
-  fs = require('fs');
-  path = require('path');
+  // stream = require('stream');
+  // fs = require('fs');
+  // path = require('path');
 } catch (e) {}
+
 /**
  * The DataResolver identifies different objects and tries to resolve a specific piece of information from them.
  * @private

@@ -43,15 +43,8 @@ class Client extends BaseClient {
      * @param {ClientOptions} options Options for the client
      */
     constructor(options) {
-        var _a;
         super(options);
-        const data = (_a = require('worker_threads').workerData) !== null && _a !== void 0 ? _a : process.env;
         const defaults = Options.createDefault();
-        if (this.options.shards === defaults.shards) {
-            if ('SHARDS' in data) {
-                this.options.shards = JSON.parse(data.SHARDS);
-            }
-        }
         if (this.options.shardCount === defaults.shardCount) {
             if ('SHARD_COUNT' in data) {
                 this.options.shardCount = Number(data.SHARD_COUNT);
