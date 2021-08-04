@@ -53,6 +53,7 @@
     "discord-api-types": "^0.22.0",
     "fosscord.js-builders": "github:fosscord/fosscord.js-builders",
     "node-fetch": "^2.6.1",
+    "text-decoding": "^1.0.0",
     "ws": "^7.5.1"
   },
   "devDependencies": {

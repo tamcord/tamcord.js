@@ -8,10 +8,11 @@ try {
         erlpack = null;
 }
 catch (_a) { } // eslint-disable-line no-empty
+require('text-decoding');
 let TextDecoder;
 if (browser) {
-    TextDecoder = window.TextDecoder; // eslint-disable-line no-undef
-    exports.WebSocket = window.WebSocket; // eslint-disable-line no-undef
+    TextDecoder = globaThis.TextDecoder; // eslint-disable-line no-undef
+    exports.WebSocket = globaThis.WebSocket; // eslint-disable-line no-undef
 }
 else {
     TextDecoder = require('util').TextDecoder;

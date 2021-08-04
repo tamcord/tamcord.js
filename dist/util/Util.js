@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const { parse } = require('path');
 const { Collection } = require('@discordjs/collection');
 const fetch = require('node-fetch');
 const { Colors, Endpoints } = require('./Constants');
@@ -146,6 +145,8 @@ class Util extends null {
                 .join(codeBlock ? '\\`\\`\\`' : '```');
         }
         if (!inlineCodeContent) {
+            return text;
+            // TODO: fix https://stackoverflow.com/questions/51568821/works-in-chrome-but-breaks-in-safari-invalid-regular-expression-invalid-group
             return text
                 .split(/(?<=^|[^`])`(?=[^`]|$)/g)
                 .map((subString, index, array) => {
@@ -192,6 +193,8 @@ class Util extends null {
      * @returns {string}
      */
     static escapeInlineCode(text) {
+        // TODO: fix https://stackoverflow.com/questions/51568821/works-in-chrome-but-breaks-in-safari-invalid-regular-expression-invalid-group
+        return text;
         return text.replace(/(?<=^|[^`])`(?=[^`]|$)/g, '\\`');
     }
     /**
@@ -200,6 +203,8 @@ class Util extends null {
      * @returns {string}
      */
     static escapeItalic(text) {
+        return text;
+        // TODO: fix https://stackoverflow.com/questions/51568821/works-in-chrome-but-breaks-in-safari-invalid-regular-expression-invalid-group
         let i = 0;
         text = text.replace(/(?<=^|[^*])\*([^*]|\*\*|$)/g, (_, match) => {
             if (match === '**')
@@ -299,6 +304,8 @@ class Util extends null {
             text = decodeURIComponent(text);
         if (!text.includes(':'))
             return { animated: false, name: text, id: null };
+        // TODO: fix https://stackoverflow.com/questions/51568821/works-in-chrome-but-breaks-in-safari-invalid-regular-expression-invalid-group
+        return text;
         const match = text.match(/<?(?:(a):)?(\w{2,32}):(\d{17,19})?>?/);
         return match && { animated: Boolean(match[1]), name: match[2], id: (_a = match[3]) !== null && _a !== void 0 ? _a : null };
     }

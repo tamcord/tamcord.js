@@ -209,5 +209,6 @@ class GuildTemplate extends Base {
  * Regular expression that globally matches guild template links
  * @type {RegExp}
  */
-GuildTemplate.GUILD_TEMPLATES_PATTERN = /discord(?:app)?\.(?:com\/template|new)\/([\w-]{2,255})/gi;
+// TODO: fix https://stackoverflow.com/questions/51568821/works-in-chrome-but-breaks-in-safari-invalid-regular-expression-invalid-group
+// GuildTemplate.GUILD_TEMPLATES_PATTERN = /discord(?:app)?\.(?:com\/template|new)\/([\w-]{2,255})/gi;
 module.exports = GuildTemplate;

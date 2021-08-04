@@ -33,10 +33,12 @@ class WebhookClient extends BaseClient {
     let { id, token } = data;
 
     if ('url' in data) {
-      const url = data.url.match(
-        // eslint-disable-next-line no-useless-escape
-        /^https?:\/\/(?:canary|ptb)?\.?discord\.com\/api\/webhooks(?:\/v[0-9]\d*)?\/([^\/]+)\/([^\/]+)/i,
-      );
+      // TODO: fix https://stackoverflow.com/questions/51568821/works-in-chrome-but-breaks-in-safari-invalid-regular-expression-invalid-group
+      // const url = data.url.match(
+      //   // eslint-disable-next-line no-useless-escape
+      //   /^https?:\/\/(?:canary|ptb)?\.?discord\.com\/api\/webhooks(?:\/v[0-9]\d*)?\/([^\/]+)\/([^\/]+)/i,
+      // );
+      const url = data.url;
 
       if (!url || url.length <= 1) throw new Error('WEBHOOK_URL_INVALID');
 

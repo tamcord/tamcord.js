@@ -1,11 +1,9 @@
 // @ts-nocheck
 'use strict';
-const https = require('https');
 const FormData = require('@discordjs/form-data');
 const AbortController = require('abort-controller');
 const fetch = require('node-fetch');
 const { UserAgent } = require('../util/Constants');
-const agent = new https.Agent({ keepAlive: true });
 class APIRequest {
     constructor(rest, method, path, options) {
         this.rest = rest;
@@ -66,7 +64,6 @@ class APIRequest {
         return fetch(url, {
             method: this.method,
             headers,
-            agent,
             body,
             signal: controller.signal,
         }).finally(() => clearTimeout(timeout));
