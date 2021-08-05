@@ -147,21 +147,20 @@ class Util extends null {
         if (!inlineCodeContent) {
             return text;
             // TODO: fix https://stackoverflow.com/questions/51568821/works-in-chrome-but-breaks-in-safari-invalid-regular-expression-invalid-group
-            return text
-                .split(/(?<=^|[^`])`(?=[^`]|$)/g)
-                .map((subString, index, array) => {
-                if (index % 2 && index !== array.length - 1)
-                    return subString;
-                return Util.escapeMarkdown(subString, {
-                    codeBlock,
-                    bold,
-                    italic,
-                    underline,
-                    strikethrough,
-                    spoiler,
-                });
-            })
-                .join(inlineCode ? '\\`' : '`');
+            // return text
+            //   .split(/(?<=^|[^`])`(?=[^`]|$)/g)
+            //   .map((subString, index, array) => {
+            //     if (index % 2 && index !== array.length - 1) return subString;
+            //     return Util.escapeMarkdown(subString, {
+            //       codeBlock,
+            //       bold,
+            //       italic,
+            //       underline,
+            //       strikethrough,
+            //       spoiler,
+            //     });
+            //   })
+            //   .join(inlineCode ? '\\`' : '`');
         }
         if (inlineCode)
             text = Util.escapeInlineCode(text);
@@ -195,7 +194,7 @@ class Util extends null {
     static escapeInlineCode(text) {
         // TODO: fix https://stackoverflow.com/questions/51568821/works-in-chrome-but-breaks-in-safari-invalid-regular-expression-invalid-group
         return text;
-        return text.replace(/(?<=^|[^`])`(?=[^`]|$)/g, '\\`');
+        // return text.replace(/(?<=^|[^`])`(?=[^`]|$)/g, '\\`');
     }
     /**
      * Escapes italic markdown in a string.
@@ -205,18 +204,16 @@ class Util extends null {
     static escapeItalic(text) {
         return text;
         // TODO: fix https://stackoverflow.com/questions/51568821/works-in-chrome-but-breaks-in-safari-invalid-regular-expression-invalid-group
-        let i = 0;
-        text = text.replace(/(?<=^|[^*])\*([^*]|\*\*|$)/g, (_, match) => {
-            if (match === '**')
-                return ++i % 2 ? `\\*${match}` : `${match}\\*`;
-            return `\\*${match}`;
-        });
-        i = 0;
-        return text.replace(/(?<=^|[^_])_([^_]|__|$)/g, (_, match) => {
-            if (match === '__')
-                return ++i % 2 ? `\\_${match}` : `${match}\\_`;
-            return `\\_${match}`;
-        });
+        // let i = 0;
+        // text = text.replace(/(?<=^|[^*])\*([^*]|\*\*|$)/g, (_, match) => {
+        //   if (match === '**') return ++i % 2 ? `\\*${match}` : `${match}\\*`;
+        //   return `\\*${match}`;
+        // });
+        // i = 0;
+        // return text.replace(/(?<=^|[^_])_([^_]|__|$)/g, (_, match) => {
+        //   if (match === '__') return ++i % 2 ? `\\_${match}` : `${match}\\_`;
+        //   return `\\_${match}`;
+        // });
     }
     /**
      * Escapes bold markdown in a string.
@@ -299,15 +296,14 @@ class Util extends null {
      * @private
      */
     static parseEmoji(text) {
-        var _a;
         if (text.includes('%'))
             text = decodeURIComponent(text);
         if (!text.includes(':'))
             return { animated: false, name: text, id: null };
         // TODO: fix https://stackoverflow.com/questions/51568821/works-in-chrome-but-breaks-in-safari-invalid-regular-expression-invalid-group
         return text;
-        const match = text.match(/<?(?:(a):)?(\w{2,32}):(\d{17,19})?>?/);
-        return match && { animated: Boolean(match[1]), name: match[2], id: (_a = match[3]) !== null && _a !== void 0 ? _a : null };
+        // const match = text.match(/<?(?:(a):)?(\w{2,32}):(\d{17,19})?>?/);
+        // return match && { animated: Boolean(match[1]), name: match[2], id: match[3] ?? null };
     }
     /**
      * Resolves a partial emoji object from an {@link EmojiIdentifierResolvable}, without checking a Client.

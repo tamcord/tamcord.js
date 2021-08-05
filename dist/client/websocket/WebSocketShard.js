@@ -13,7 +13,7 @@ try {
         zlib = null;
 }
 catch (_a) {
-    lib = null;
+    zlib = null;
 } // eslint-disable-line no-empty
 /**
  * Represents a Shard's WebSocket connection

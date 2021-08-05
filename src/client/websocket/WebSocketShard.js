@@ -15,7 +15,7 @@ try {
   zlib = require('zlib-sync');
   if (Object.keys(zlib).length === 0) zlib = null;
 } catch {
-  lib = null;
+  zlib = null;
 } // eslint-disable-line no-empty
 
 /**

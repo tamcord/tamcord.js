@@ -3,19 +3,13 @@
 
 const { browser } = require('./util/Constants');
 
-let erlpack;
-
-try {
-  erlpack = require('erlpack');
-  if (!erlpack.pack) erlpack = null;
-} catch {} // eslint-disable-line no-empty
 require('text-decoding');
 
 let TextDecoder;
 
 if (browser) {
-  TextDecoder = globaThis.TextDecoder; // eslint-disable-line no-undef
-  exports.WebSocket = globaThis.WebSocket; // eslint-disable-line no-undef
+  TextDecoder = globalThis.TextDecoder; // eslint-disable-line no-undef
+  exports.WebSocket = globalThis.WebSocket; // eslint-disable-line no-undef
 } else {
   TextDecoder = require('util').TextDecoder;
   exports.WebSocket = require('ws');
@@ -23,19 +17,15 @@ if (browser) {
 
 const ab = new TextDecoder();
 
-exports.encoding = erlpack ? 'etf' : 'json';
+exports.encoding = 'json';
 
-exports.pack = erlpack ? erlpack.pack : JSON.stringify;
+exports.pack = JSON.stringify;
 
 exports.unpack = (data, type) => {
-  if (exports.encoding === 'json' || type === 'json') {
-    if (typeof data !== 'string') {
-      data = ab.decode(data);
-    }
-    return JSON.parse(data);
+  if (typeof data !== 'string') {
+    data = ab.decode(data);
   }
-  if (!Buffer.isBuffer(data)) data = Buffer.from(new Uint8Array(data));
-  return erlpack.unpack(data);
+  return JSON.parse(data);
 };
 
 exports.create = (gateway, query = {}, ...args) => {
