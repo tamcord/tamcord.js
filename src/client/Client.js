@@ -217,6 +217,7 @@ class Client extends BaseClient {
       await this.ws.connect();
       return this.token;
     } catch (error) {
+      this.emit(Events.INVALIDATED, error);
       this.destroy();
       throw error;
     }

@@ -35,15 +35,20 @@ class Message extends Base {
     /**
      * @param {Client} client The instantiating client
      * @param {APIMessage} data The data for the message
-     * @param {TextChannel|DMChannel|NewsChannel|ThreadChannel} channel The channel the message was sent in
      */
-    constructor(client, data, channel) {
+    constructor(client, data) {
+        var _a;
         super(client);
         /**
-         * The channel that the message was sent in
-         * @type {TextChannel|DMChannel|NewsChannel|ThreadChannel}
+         * The id of the channel the message was sent in
+         * @type {Snowflake}
          */
-        this.channel = channel;
+        this.channelId = data.channel_id;
+        /**
+         * The id of the guild the message was sent in, if any
+         * @type {?Snowflake}
+         */
+        this.guildId = (_a = data.guild_id) !== null && _a !== void 0 ? _a : null;
         /**
          * Whether this message has been deleted
          * @type {boolean}
@@ -53,7 +58,7 @@ class Message extends Base {
             this._patch(data);
     }
     _patch(data, partial = false) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
         /**
          * The message's id
          * @type {Snowflake}
@@ -278,7 +283,7 @@ class Message extends Base {
                 : null;
         }
         if (data.referenced_message) {
-            this.channel.messages._add(data.referenced_message);
+            (_s = this.channel) === null || _s === void 0 ? void 0 : _s.messages._add(data.referenced_message);
         }
         /**
          * Partial data of the interaction that a message is a reply to
@@ -308,6 +313,14 @@ class Message extends Base {
         const clone = this._clone();
         this._patch(data, partial);
         return clone;
+    }
+    /**
+     * The channel that the message was sent in
+     * @type {TextChannel|DMChannel|NewsChannel|ThreadChannel}
+     * @readonly
+     */
+    get channel() {
+        return this.client.channels.resolve(this.channelId);
     }
     /**
      * Whether or not this message is a partial
@@ -349,8 +362,7 @@ class Message extends Base {
      * @readonly
      */
     get guild() {
-        var _a;
-        return (_a = this.channel.guild) !== null && _a !== void 0 ? _a : null;
+        return this.client.guilds.resolve(this.guildId);
     }
     /**
      * Whether this message has a thread associated with it
@@ -368,7 +380,8 @@ class Message extends Base {
      * @readonly
      */
     get thread() {
-        return this.channel.threads.resolve(this.id);
+        var _a, _b;
+        return (_b = (_a = this.channel) === null || _a === void 0 ? void 0 : _a.threads.resolve(this.id)) !== null && _b !== void 0 ? _b : null;
     }
     /**
      * The url to jump to this message
@@ -376,7 +389,8 @@ class Message extends Base {
      * @readonly
      */
     get url() {
-        return `https://discord.com/channels/${this.guild ? this.guild.id : '@me'}/${this.channel.id}/${this.id}`;
+        var _a;
+        return `https://discord.com/channels/${(_a = this.guildId) !== null && _a !== void 0 ? _a : '@me'}/${this.channelId}/${this.id}`;
     }
     /**
      * The message contents with all mentions replaced by the equivalent text.

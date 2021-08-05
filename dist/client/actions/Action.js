@@ -27,12 +27,12 @@ class GenericAction {
         return existing;
     }
     getChannel(data) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         const id = (_a = data.channel_id) !== null && _a !== void 0 ? _a : data.id;
         return ((_b = data.channel) !== null && _b !== void 0 ? _b : this.getPayload({
             id,
             guild_id: data.guild_id,
-            recipients: [(_c = data.author) !== null && _c !== void 0 ? _c : { id: data.user_id }],
+            recipients: [(_d = (_c = data.author) !== null && _c !== void 0 ? _c : data.user) !== null && _d !== void 0 ? _d : { id: data.user_id }],
         }, this.client.channels, id, PartialTypes.CHANNEL));
     }
     getMessage(data, channel, cache) {

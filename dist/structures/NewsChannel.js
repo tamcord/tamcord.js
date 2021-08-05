@@ -9,18 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const TextChannel = require('./TextChannel');
+const BaseGuildTextChannel = require('./BaseGuildTextChannel');
 const { Error } = require('../errors');
 /**
  * Represents a guild news channel on Discord.
- * @extends {TextChannel}
+ * @extends {BaseGuildTextChannel}
  */
-class NewsChannel extends TextChannel {
-    _patch(data) {
-        super._patch(data);
-        // News channels don't have a rate limit per user, remove it
-        this.rateLimitPerUser = undefined;
-    }
+class NewsChannel extends BaseGuildTextChannel {
     /**
      * Adds the target to this channel's followers.
      * @param {GuildChannelResolvable} channel The channel where the webhook should be created

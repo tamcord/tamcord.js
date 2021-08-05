@@ -45,7 +45,7 @@ class ReactionUserManager extends CachedManager {
     fetch({ limit = 100, after } = {}) {
         return __awaiter(this, void 0, void 0, function* () {
             const message = this.reaction.message;
-            const data = yield this.client.api.channels[message.channel.id].messages[message.id].reactions[this.reaction.emoji.identifier].get({ query: { limit, after } });
+            const data = yield this.client.api.channels[message.channelId].messages[message.id].reactions[this.reaction.emoji.identifier].get({ query: { limit, after } });
             const users = new Collection();
             for (const rawUser of data) {
                 const user = this.client.users._add(rawUser);
@@ -66,7 +66,7 @@ class ReactionUserManager extends CachedManager {
             if (!userId)
                 throw new Error('REACTION_RESOLVE_USER');
             const message = this.reaction.message;
-            yield this.client.api.channels[message.channel.id].messages[message.id].reactions[this.reaction.emoji.identifier][userId === this.client.user.id ? '@me' : userId].delete();
+            yield this.client.api.channels[message.channelId].messages[message.id].reactions[this.reaction.emoji.identifier][userId === this.client.user.id ? '@me' : userId].delete();
             return this.reaction;
         });
     }

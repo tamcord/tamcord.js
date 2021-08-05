@@ -61,7 +61,7 @@ class ReactionManager extends CachedManager {
      */
     removeAll() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.client.api.channels(this.message.channel.id).messages(this.message.id).reactions.delete();
+            yield this.client.api.channels(this.message.channelId).messages(this.message.id).reactions.delete();
             return this.message;
         });
     }

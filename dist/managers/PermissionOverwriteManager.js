@@ -15,6 +15,7 @@ const { TypeError } = require('../errors');
 const PermissionOverwrites = require('../structures/PermissionOverwrites');
 const Role = require('../structures/Role');
 const { OverwriteTypes } = require('../util/Constants');
+let cacheWarningEmitted = false;
 /**
  * Manages API methods for guild channel permission overwrites and stores their cache.
  * @extends {CachedManager}
@@ -22,6 +23,10 @@ const { OverwriteTypes } = require('../util/Constants');
 class PermissionOverwriteManager extends CachedManager {
     constructor(channel, iterable) {
         super(channel.client, PermissionOverwrites);
+        if (!cacheWarningEmitted && this._cache.constructor.name !== 'Collection') {
+            cacheWarningEmitted = true;
+            process.emitWarning(`Overriding the cache handling for ${this.constructor.name} is unsupported and breaks functionality.`, 'UnuspportedCacheOverwriteWarning');
+        }
         /**
          * The channel of the permission overwrite this manager belongs to
          * @type {GuildChannel}

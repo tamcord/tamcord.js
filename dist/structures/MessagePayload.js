@@ -119,7 +119,7 @@ class MessagePayload {
      * @returns {MessagePayload}
      */
     resolveData() {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g;
         if (this.data)
             return this;
         const isInteraction = this.isInteraction;
@@ -160,13 +160,12 @@ class MessagePayload {
         }
         let message_reference;
         if (typeof this.options.reply === 'object') {
-            const message_id = this.isMessage
-                ? this.target.channel.messages.resolveId(this.options.reply.messageReference)
-                : this.target.messages.resolveId(this.options.reply.messageReference);
+            const reference = this.options.reply.messageReference;
+            const message_id = this.isMessage ? (_d = reference.id) !== null && _d !== void 0 ? _d : reference : this.target.messages.resolveId(reference);
             if (message_id) {
                 message_reference = {
                     message_id,
-                    fail_if_not_exists: (_d = this.options.reply.failIfNotExists) !== null && _d !== void 0 ? _d : this.target.client.options.failIfNotExists,
+                    fail_if_not_exists: (_e = this.options.reply.failIfNotExists) !== null && _e !== void 0 ? _e : this.target.client.options.failIfNotExists,
                 };
             }
         }
@@ -174,7 +173,7 @@ class MessagePayload {
             content,
             tts,
             nonce,
-            embeds: (_e = this.options.embeds) === null || _e === void 0 ? void 0 : _e.map(embed => new MessageEmbed(embed).toJSON()),
+            embeds: (_f = this.options.embeds) === null || _f === void 0 ? void 0 : _f.map(embed => new MessageEmbed(embed).toJSON()),
             components,
             username,
             avatar_url: avatarURL,
@@ -182,7 +181,7 @@ class MessagePayload {
             flags,
             message_reference,
             attachments: this.options.attachments,
-            sticker_ids: (_f = this.options.stickers) === null || _f === void 0 ? void 0 : _f.map(sticker => { var _a; return (_a = sticker.id) !== null && _a !== void 0 ? _a : sticker; }),
+            sticker_ids: (_g = this.options.stickers) === null || _g === void 0 ? void 0 : _g.map(sticker => { var _a; return (_a = sticker.id) !== null && _a !== void 0 ? _a : sticker; }),
         };
         return this;
     }

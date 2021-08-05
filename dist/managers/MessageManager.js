@@ -23,7 +23,7 @@ class MessageManager extends CachedManager {
         super(channel.client, Message, iterable);
         /**
          * The channel that the messages belong to
-         * @type {TextBasedChannel}
+         * @type {TextBasedChannels}
          */
         this.channel = channel;
     }
@@ -33,7 +33,7 @@ class MessageManager extends CachedManager {
      * @name MessageManager#cache
      */
     _add(data, cache) {
-        return super._add(data, cache, { extras: [this.channel] });
+        return super._add(data, cache);
     }
     /**
      * The parameters to pass in when requesting previous messages from a channel. `around`, `before` and

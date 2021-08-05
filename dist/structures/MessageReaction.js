@@ -65,7 +65,7 @@ class MessageReaction {
     remove() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.client.api
-                .channels(this.message.channel.id)
+                .channels(this.message.channelId)
                 .messages(this.message.id)
                 .reactions(this._emoji.identifier)
                 .delete();
