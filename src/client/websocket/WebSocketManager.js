@@ -127,7 +127,12 @@ class WebSocketManager extends EventEmitter {
       shards: recommendedShards,
       session_start_limit: sessionStartLimit,
     } = await this.client.api.gateway.bot.get().catch(error => {
-      throw error.httpStatus === 401 ? invalidToken : error;
+      if (error.httpStatus === 401) {
+        this.emit(Events.INVALIDATED, error);
+        throw invalidToken;
+      }
+
+      throw error;
     });
 
     const { total, remaining } = sessionStartLimit;

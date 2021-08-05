@@ -192,7 +192,6 @@ class Client extends BaseClient {
                 return this.token;
             }
             catch (error) {
-                this.emit(Events.INVALIDATED, error);
                 this.destroy();
                 throw error;
             }

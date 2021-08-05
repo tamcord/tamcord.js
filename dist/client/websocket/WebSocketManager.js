@@ -117,7 +117,11 @@ class WebSocketManager extends EventEmitter {
         return __awaiter(this, void 0, void 0, function* () {
             const invalidToken = new Error(WSCodes[4004]);
             const { url: gatewayURL, shards: recommendedShards, session_start_limit: sessionStartLimit, } = yield this.client.api.gateway.bot.get().catch(error => {
-                throw error.httpStatus === 401 ? invalidToken : error;
+                if (error.httpStatus === 401) {
+                    this.emit(Events.INVALIDATED, error);
+                    throw invalidToken;
+                }
+                throw error;
             });
             const { total, remaining } = sessionStartLimit;
             this.debug(`Fetched Gateway Information
