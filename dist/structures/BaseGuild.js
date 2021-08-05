@@ -28,7 +28,7 @@ class BaseGuild extends Base {
          * The name of this guild
          * @type {string}
          */
-        this.name = data.name;
+        this._name = data.name;
         /**
          * The icon hash of this guild
          * @type {?string}
@@ -56,12 +56,19 @@ class BaseGuild extends Base {
     get createdAt() {
         return new Date(this.createdTimestamp);
     }
+    get name() {
+        if (!this.name)
+            return 'unavailable';
+        return this._name;
+    }
     /**
      * The acronym that shows up in place of a guild icon
      * @type {string}
      * @readonly
      */
     get nameAcronym() {
+        if (!this.name)
+            return 'unavailable';
         return this.name
             .replace(/'s /g, ' ')
             .replace(/\w+/g, e => e[0])
@@ -89,6 +96,8 @@ class BaseGuild extends Base {
      * @returns {?string}
      */
     iconURL({ format, size, dynamic } = {}) {
+        if (this.unavailable)
+            return 'https://cdn1.iconfinder.com/data/icons/feather-2/24/clock.svg';
         if (!this.icon)
             return null;
         return this.client.rest.cdn.Icon(this.id, this.icon, format, size, dynamic);
