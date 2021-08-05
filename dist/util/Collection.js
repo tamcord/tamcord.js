@@ -20,5 +20,8 @@ class Collection extends Coll {
         this.events.emit('changed', key);
         return super.delete(key);
     }
+    array() {
+        return Array.from(this, ([name, value]) => value);
+    }
 }
 module.exports = Collection;

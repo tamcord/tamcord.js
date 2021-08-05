@@ -130,6 +130,8 @@ import {
 
 export class Collection<K, V> extends Coll<K, V> {
   events: EventEmitter;
+
+  array(): V[]
 }
 
 export class Activity {

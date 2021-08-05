@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use strict';
 
-const {Collection: Coll} = require('@discordjs/collection');
+const { Collection: Coll } = require('@discordjs/collection');
 const EventEmitter = require('events');
 
 console.log(Coll);
@@ -24,6 +24,10 @@ class Collection extends Coll {
   delete(key) {
     this.events.emit('changed', key);
     return super.delete(key);
+  }
+
+  array() {
+    return Array.from(this, ([name, value]) => value);
   }
 
   // static get [Symbol.species]() {
