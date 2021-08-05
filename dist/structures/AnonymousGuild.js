@@ -47,6 +47,7 @@ class AnonymousGuild extends BaseGuild {
              */
             this.nsfwLevel = NSFWLevels[data.nsfw_level];
         }
+        super._patch(data);
     }
     /**
      * The URL to this guild's banner.

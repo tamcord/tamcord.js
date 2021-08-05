@@ -54,6 +54,8 @@ class AnonymousGuild extends BaseGuild {
        */
       this.nsfwLevel = NSFWLevels[data.nsfw_level];
     }
+
+    super._patch(data);
   }
 
   /**

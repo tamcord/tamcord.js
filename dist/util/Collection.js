@@ -13,7 +13,10 @@ class Collection extends Coll {
         this.events = new EventEmitter();
     }
     set(key, value) {
+        if (typeof value === 'object')
+            value.cache = this;
         this.events.emit('changed', key);
+        // console.log('collection set ' + key, value);
         return super.set(key, value);
     }
     delete(key) {

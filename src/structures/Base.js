@@ -23,11 +23,15 @@ class Base {
   }
 
   _patch(data) {
+    // console.log('_patch guild', this);
+    if (this.cache) this.cache.events.emit('changed', this);
     return data;
   }
 
   _update(data) {
+    // console.log('_update guild', this);
     const clone = this._clone();
+    if (this.cache) this.cache.events.emit('changed', this);
     this._patch(data);
     return clone;
   }
