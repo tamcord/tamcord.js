@@ -1,6 +1,6 @@
 // @ts-nocheck
 'use strict';
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../../../util/Collection');
 const { Events } = require('../../../util/Constants');
 module.exports = (client, { d: data }) => {
     const guild = client.guilds.cache.get(data.guild_id);

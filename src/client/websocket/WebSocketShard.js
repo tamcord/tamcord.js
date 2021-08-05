@@ -8,15 +8,7 @@ const Intents = require('../../util/Intents');
 
 const STATUS_KEYS = Object.keys(Status);
 const CONNECTION_STATE = Object.keys(WebSocket.WebSocket);
-
-let zlib;
-
-try {
-  zlib = require('zlib-sync');
-  if (Object.keys(zlib).length === 0) zlib = null;
-} catch {
-  zlib = null;
-} // eslint-disable-line no-empty
+var zlib = null;
 
 /**
  * Represents a Shard's WebSocket connection
@@ -459,7 +451,7 @@ class WebSocketShard extends EventEmitter {
   checkReady() {
     // Step 0. Clear the ready timeout, if it exists
     if (this.readyTimeout) {
-      clearTimeout(this.readyTimeout);
+      this.manager.client.clearTimeout(this.readyTimeout);
       this.readyTimeout = null;
     }
     // Step 1. If we don't have any other guilds pending, we are ready
@@ -479,7 +471,7 @@ class WebSocketShard extends EventEmitter {
       return;
     }
     // Step 2. Create a 15s timeout that will mark the shard as ready if there are still unavailable guilds
-    this.readyTimeout = setTimeout(() => {
+    this.readyTimeout = this.manager.client.setTimeout(() => {
       this.debug(`Shard did not receive any more guild packets in 15 seconds.
   Unavailable guild count: ${this.expectedGuilds.size}`);
 
@@ -488,7 +480,7 @@ class WebSocketShard extends EventEmitter {
       this.status = Status.READY;
 
       this.emit(ShardEvents.ALL_READY, this.expectedGuilds);
-    }, 15000).unref();
+    }, 15000);
   }
 
   /**
@@ -500,16 +492,16 @@ class WebSocketShard extends EventEmitter {
     if (time === -1) {
       if (this.helloTimeout) {
         this.debug('Clearing the HELLO timeout.');
-        clearTimeout(this.helloTimeout);
+        this.manager.client.clearTimeout(this.helloTimeout);
         this.helloTimeout = null;
       }
       return;
     }
     this.debug('Setting a HELLO timeout for 20s.');
-    this.helloTimeout = setTimeout(() => {
+    this.helloTimeout = this.manager.client.setTimeout(() => {
       this.debug('Did not receive HELLO in time. Destroying and connecting again.');
       this.destroy({ reset: true, closeCode: 4009 });
-    }, 20000).unref();
+    }, 20000);
   }
 
   /**
@@ -521,15 +513,15 @@ class WebSocketShard extends EventEmitter {
     if (time === -1) {
       if (this.heartbeatInterval) {
         this.debug('Clearing the heartbeat interval.');
-        clearInterval(this.heartbeatInterval);
+        this.manager.client.clearInterval(this.heartbeatInterval);
         this.heartbeatInterval = null;
       }
       return;
     }
     this.debug(`Setting a heartbeat interval for ${time}ms.`);
     // Sanity checks
-    if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
-    this.heartbeatInterval = setInterval(() => this.sendHeartbeat(), time).unref();
+    if (this.heartbeatInterval) this.manager.client.clearInterval(this.heartbeatInterval);
+    this.heartbeatInterval = this.manager.client.setInterval(() => this.sendHeartbeat(), time);
   }
 
   /**
@@ -672,10 +664,10 @@ class WebSocketShard extends EventEmitter {
     if (this.ratelimit.remaining === 0) return;
     if (this.ratelimit.queue.length === 0) return;
     if (this.ratelimit.remaining === this.ratelimit.total) {
-      this.ratelimit.timer = setTimeout(() => {
+      this.ratelimit.timer = this.manager.client.setTimeout(() => {
         this.ratelimit.remaining = this.ratelimit.total;
         this.processQueue();
-      }, this.ratelimit.time).unref();
+      }, this.ratelimit.time);
     }
     while (this.ratelimit.remaining > 0) {
       const item = this.ratelimit.queue.shift();
@@ -745,7 +737,7 @@ class WebSocketShard extends EventEmitter {
     this.ratelimit.remaining = this.ratelimit.total;
     this.ratelimit.queue.length = 0;
     if (this.ratelimit.timer) {
-      clearTimeout(this.ratelimit.timer);
+      this.manager.client.clearTimeout(this.ratelimit.timer);
       this.ratelimit.timer = null;
     }
   }

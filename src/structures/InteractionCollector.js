@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use strict';
 
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../util/Collection');
 const Collector = require('./interfaces/Collector');
 const { Events } = require('../util/Constants');
 const { InteractionTypes, MessageComponentTypes } = require('../util/Constants');

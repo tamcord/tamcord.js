@@ -22,7 +22,7 @@ var __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _ar
     function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
 };
 const EventEmitter = require('events');
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../../util/Collection');
 const { TypeError } = require('../../errors');
 const Util = require('../../util/Util');
 /**
@@ -94,9 +94,9 @@ class Collector extends EventEmitter {
         this.handleCollect = this.handleCollect.bind(this);
         this.handleDispose = this.handleDispose.bind(this);
         if (options.time)
-            this._timeout = setTimeout(() => this.stop('time'), options.time).unref();
+            this._timeout = this.client.setTimeout(() => this.stop('time'), options.time);
         if (options.idle)
-            this._idletimeout = setTimeout(() => this.stop('idle'), options.idle).unref();
+            this._idletimeout = this.client.setTimeout(() => this.stop('idle'), options.idle);
     }
     /**
      * Call this to handle an event as a collectable element. Accepts any event data as parameters.
@@ -116,8 +116,8 @@ class Collector extends EventEmitter {
                  */
                 this.emit('collect', ...args);
                 if (this._idletimeout) {
-                    clearTimeout(this._idletimeout);
-                    this._idletimeout = setTimeout(() => this.stop('idle'), this.options.idle).unref();
+                    this.client.clearTimeout(this._idletimeout);
+                    this._idletimeout = this.client.setTimeout(() => this.stop('idle'), this.options.idle);
                 }
             }
             this.checkEnd();
@@ -183,11 +183,11 @@ class Collector extends EventEmitter {
         if (this.ended)
             return;
         if (this._timeout) {
-            clearTimeout(this._timeout);
+            this.client.clearTimeout(this._timeout);
             this._timeout = null;
         }
         if (this._idletimeout) {
-            clearTimeout(this._idletimeout);
+            this.client.clearTimeout(this._idletimeout);
             this._idletimeout = null;
         }
         this.ended = true;
@@ -212,12 +212,12 @@ class Collector extends EventEmitter {
      */
     resetTimer({ time, idle } = {}) {
         if (this._timeout) {
-            clearTimeout(this._timeout);
-            this._timeout = setTimeout(() => this.stop('time'), time !== null && time !== void 0 ? time : this.options.time).unref();
+            this.client.clearTimeout(this._timeout);
+            this._timeout = this.client.setTimeout(() => this.stop('time'), time !== null && time !== void 0 ? time : this.options.time);
         }
         if (this._idletimeout) {
-            clearTimeout(this._idletimeout);
-            this._idletimeout = setTimeout(() => this.stop('idle'), idle !== null && idle !== void 0 ? idle : this.options.idle).unref();
+            this.client.clearTimeout(this._idletimeout);
+            this._idletimeout = this.client.setTimeout(() => this.stop('idle'), idle !== null && idle !== void 0 ? idle : this.options.idle);
         }
     }
     /**

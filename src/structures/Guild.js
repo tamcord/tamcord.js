@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use strict';
 
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../util/Collection');
 const AnonymousGuild = require('./AnonymousGuild');
 const GuildAuditLogs = require('./GuildAuditLogs');
 const GuildPreview = require('./GuildPreview');

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../util/Collection');
 const BaseGuildEmojiManager = require('./BaseGuildEmojiManager');
 const { TypeError } = require('../errors');
 const DataResolver = require('../util/DataResolver');

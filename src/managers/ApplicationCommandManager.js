@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use strict';
 
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../util/Collection');
 const ApplicationCommandPermissionsManager = require('./ApplicationCommandPermissionsManager');
 const CachedManager = require('./CachedManager');
 const { TypeError } = require('../errors');

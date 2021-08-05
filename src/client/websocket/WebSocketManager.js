@@ -2,7 +2,7 @@
 'use strict';
 
 const EventEmitter = require('events');
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../../util/Collection');
 const WebSocketShard = require('./WebSocketShard');
 const PacketHandlers = require('./handlers');
 const { Error } = require('../../errors');
@@ -337,9 +337,9 @@ class WebSocketManager extends EventEmitter {
 
     if (this.packetQueue.length) {
       const item = this.packetQueue.shift();
-      setImmediate(() => {
+      this.client.setImmediate(() => {
         this.handlePacket(item.packet, item.shard);
-      }).unref();
+      });
     }
 
     if (packet && PacketHandlers[packet.t]) {

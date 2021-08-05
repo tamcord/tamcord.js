@@ -3,7 +3,7 @@
 const Package = (exports.Package = require('../../package.json'));
 const { Error, RangeError } = require('../errors');
 exports.browser = typeof window !== 'undefined';
-exports.UserAgent = `DiscordBot (${Package.homepage.split('#')[0]}, ${Package.version}) Node.js/${process.version}`;
+exports.UserAgent = `DiscordBot (${Package.homepage.split('#')[0]}, ${Package.version}) `;
 exports.WSCodes = {
     1000: 'WS_CLOSE_REQUESTED',
     4004: 'TOKEN_INVALID',

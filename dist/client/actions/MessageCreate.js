@@ -27,7 +27,7 @@ class MessageCreateAction extends Action {
              */
             if (client.emit('message', message) && !deprecationEmitted) {
                 deprecationEmitted = true;
-                process.emitWarning('The message event is deprecated. Use messageCreate instead', 'DeprecationWarning');
+                console.warn('The message event is deprecated. Use messageCreate instead', 'DeprecationWarning');
             }
             return { message };
         }

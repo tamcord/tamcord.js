@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../util/Collection');
 const fetch = require('node-fetch');
 const { Colors, Endpoints } = require('./Constants');
 const Options = require('./Options');
@@ -622,7 +622,7 @@ class Util extends null {
      */
     static delayFor(ms) {
         return new Promise(resolve => {
-            setTimeout(resolve, ms);
+            this.client.setTimeout(resolve, ms);
         });
     }
 }

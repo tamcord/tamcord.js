@@ -1,6 +1,6 @@
 // @ts-nocheck
 'use strict';
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../util/Collection');
 const Base = require('./Base');
 /**
  * Represents the data about a public {@link StageInstance} in an {@link Invite}.

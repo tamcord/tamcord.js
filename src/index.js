@@ -5,9 +5,6 @@ module.exports = {
   // "Root" classes (starting points)
   BaseClient: require('./client/BaseClient'),
   Client: require('./client/Client'),
-  // Shard: require('./sharding/Shard'),
-  // ShardClientUtil: require('./sharding/ShardClientUtil'),
-  // ShardingManager: require('./sharding/ShardingManager'),
   WebhookClient: require('./client/WebhookClient'),
 
   // Utilities
@@ -15,7 +12,7 @@ module.exports = {
   ApplicationFlags: require('./util/ApplicationFlags'),
   BaseManager: require('./managers/BaseManager'),
   BitField: require('./util/BitField'),
-  Collection: require('@discordjs/collection').Collection,
+  Collection: require('./util/Collection'),
   Constants: require('./util/Constants'),
   DataResolver: require('./util/DataResolver'),
   DiscordAPIError: require('./rest/DiscordAPIError'),

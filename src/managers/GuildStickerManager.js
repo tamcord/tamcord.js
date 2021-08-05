@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use strict';
 
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../util/Collection');
 const CachedManager = require('./CachedManager');
 const { TypeError } = require('../errors');
 const MessagePayload = require('../structures/MessagePayload');

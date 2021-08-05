@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use strict';
 
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../util/Collection');
 const CachedManager = require('./CachedManager');
 const Guild = require('../structures/Guild');
 const GuildChannel = require('../structures/GuildChannel');
@@ -217,7 +217,7 @@ class GuildManager extends CachedManager {
     return new Promise(resolve => {
       const handleGuild = guild => {
         if (guild.id === data.id) {
-          clearTimeout(timeout);
+          this.client.clearTimeout(timeout);
           this.client.removeListener(Events.GUILD_CREATE, handleGuild);
           this.client.decrementMaxListeners();
           resolve(guild);
@@ -226,11 +226,11 @@ class GuildManager extends CachedManager {
       this.client.incrementMaxListeners();
       this.client.on(Events.GUILD_CREATE, handleGuild);
 
-      const timeout = setTimeout(() => {
+      const timeout = this.client.setTimeout(() => {
         this.client.removeListener(Events.GUILD_CREATE, handleGuild);
         this.client.decrementMaxListeners();
         resolve(this.client.guilds._add(data));
-      }, 10000).unref();
+      }, 10000);
     });
   }
 

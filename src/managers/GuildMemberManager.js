@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use strict';
 
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../util/Collection');
 const CachedManager = require('./CachedManager');
 const { Error, TypeError, RangeError } = require('../errors');
 const BaseGuildVoiceChannel = require('../structures/BaseGuildVoiceChannel');
@@ -415,7 +415,7 @@ class GuildMemberManager extends CachedManager {
           (limit && fetchedMembers.size >= limit) ||
           i === chunk.count
         ) {
-          clearTimeout(timeout);
+          this.client.clearTimeout(timeout);
           this.client.removeListener(Events.GUILD_MEMBERS_CHUNK, handler);
           this.client.decrementMaxListeners();
           let fetched = option ? fetchedMembers : this.cache;
@@ -423,11 +423,11 @@ class GuildMemberManager extends CachedManager {
           resolve(fetched);
         }
       };
-      const timeout = setTimeout(() => {
+      const timeout = this.client.setTimeout(() => {
         this.client.removeListener(Events.GUILD_MEMBERS_CHUNK, handler);
         this.client.decrementMaxListeners();
         reject(new Error('GUILD_MEMBERS_TIMEOUT'));
-      }, time).unref();
+      }, time);
       this.client.incrementMaxListeners();
       this.client.on(Events.GUILD_MEMBERS_CHUNK, handler);
     });

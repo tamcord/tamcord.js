@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use strict';
 
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../util/Collection');
 const GuildChannel = require('./GuildChannel');
 const Webhook = require('./Webhook');
 const TextBasedChannel = require('./interfaces/TextBasedChannel');

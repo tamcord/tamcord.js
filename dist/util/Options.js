@@ -121,7 +121,7 @@ class Options extends null {
                 large_threshold: 50,
                 compress: false,
                 properties: {
-                    $os: process.platform,
+                    $os: 'browser',
                     $browser: 'discord.js',
                     $device: 'discord.js',
                 },
@@ -168,7 +168,7 @@ class Options extends null {
      * });
      */
     static cacheWithLimits(settings = {}) {
-        const { Collection } = require('@discordjs/collection');
+        const Collection = require('./Collection');
         const LimitedCollection = require('./LimitedCollection');
         return manager => {
             const setting = settings[manager.name];
@@ -200,7 +200,7 @@ class Options extends null {
      * @returns {CacheFactory}
      */
     static cacheEverything() {
-        const { Collection } = require('@discordjs/collection');
+        const Collection = require('./Collection');
         return () => new Collection();
     }
 }

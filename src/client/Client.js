@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use strict';
 
-const { Collection } = require('@discordjs/collection');
+const Collection = require('../util/Collection');
 const BaseClient = require('./BaseClient');
 const ActionsManager = require('./actions/ActionsManager');
 const ClientVoiceManager = require('./voice/ClientVoiceManager');
@@ -11,7 +11,6 @@ const BaseGuildEmojiManager = require('../managers/BaseGuildEmojiManager');
 const ChannelManager = require('../managers/ChannelManager');
 const GuildManager = require('../managers/GuildManager');
 const UserManager = require('../managers/UserManager');
-const ShardClientUtil = require('../sharding/ShardClientUtil');
 const ClientPresence = require('../structures/ClientPresence');
 const GuildPreview = require('../structures/GuildPreview');
 const GuildTemplate = require('../structures/GuildTemplate');
@@ -41,9 +40,7 @@ class Client extends BaseClient {
     const defaults = Options.createDefault();
 
     if (this.options.shardCount === defaults.shardCount) {
-      if ('SHARD_COUNT' in data) {
-        this.options.shardCount = Number(data.SHARD_COUNT);
-      } else if (Array.isArray(this.options.shards)) {
+      if (Array.isArray(this.options.shards)) {
         this.options.shardCount = this.options.shards.length;
       }
     }
@@ -100,15 +97,6 @@ class Client extends BaseClient {
     this.voice = new ClientVoiceManager(this);
 
     /**
-     * Shard helpers for the client (only if the process was spawned from a {@link ShardingManager})
-     * @type {?ShardClientUtil}
-     */
-    this.shard =
-      !browser && process.env.SHARDING_MANAGER
-        ? ShardClientUtil.singleton(this, process.env.SHARDING_MANAGER_MODE)
-        : null;
-
-    /**
      * All of the {@link User} objects that have been cached at any point, mapped by their ids
      * @type {UserManager}
      */
@@ -137,18 +125,7 @@ class Client extends BaseClient {
      */
     this.presence = new ClientPresence(this, this.options.presence);
 
-    Object.defineProperty(this, 'token', { writable: true });
-    if (!this.token && 'DISCORD_TOKEN' in process.env) {
-      /**
-       * Authorization token for the logged in bot.
-       * If present, this defaults to `process.env.DISCORD_TOKEN` when instantiating the client
-       * <warn>This should be kept private at all times.</warn>
-       * @type {?string}
-       */
-      this.token = process.env.DISCORD_TOKEN;
-    } else {
-      this.token = null;
-    }
+    this.token = null;
 
     /**
      * User that the client is logged in as
@@ -170,14 +147,14 @@ class Client extends BaseClient {
     this.readyAt = null;
 
     if (this.options.messageSweepInterval > 0) {
-      process.emitWarning(
+      console.warn(
         'The message sweeping client options are deprecated, use the makeCache option with LimitedCollection instead.',
         'DeprecationWarning',
       );
-      this.sweepMessageInterval = setInterval(
+      this.sweepMessageInterval = this.client.client.setInterval(
         this.sweepMessages.bind(this),
         this.options.messageSweepInterval * 1000,
-      ).unref();
+      );
     }
   }
 
@@ -264,7 +241,7 @@ class Client extends BaseClient {
     for (const fn of this._cleanups) fn();
     this._cleanups.clear();
 
-    if (this.sweepMessageInterval) clearInterval(this.sweepMessageInterval);
+    if (this.sweepMessageInterval) this.clearInterval(this.sweepMessageInterval);
 
     this.ws.destroy();
     this.token = null;

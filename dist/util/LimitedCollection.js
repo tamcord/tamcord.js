@@ -1,6 +1,6 @@
 // @ts-nocheck
 'use strict';
-const { Collection } = require('@discordjs/collection');
+const Collection = require('./Collection');
 const { _cleanupSymbol } = require('./Constants.js');
 const { TypeError } = require('../errors/DJSError.js');
 /**
@@ -72,7 +72,7 @@ class LimitedCollection extends Collection {
                     if (typeof sweepFn !== 'function')
                         throw new TypeError('SWEEP_FILTER_RETURN');
                     this.sweep(sweepFn);
-                }, sweepInterval * 1000).unref()
+                }, sweepInterval * 1000)
                 : null;
     }
     set(key, value) {

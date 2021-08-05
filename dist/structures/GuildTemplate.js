@@ -115,13 +115,13 @@ class GuildTemplate extends Base {
                 };
                 const handleGuild = guild => {
                     if (guild.id === data.id) {
-                        clearTimeout(timeout);
+                        this.client.clearTimeout(timeout);
                         resolveGuild(guild);
                     }
                 };
                 client.incrementMaxListeners();
                 client.on(Events.GUILD_CREATE, handleGuild);
-                const timeout = setTimeout(() => resolveGuild(client.guilds._add(data)), 10000).unref();
+                const timeout = this.client.setTimeout(() => resolveGuild(client.guilds._add(data)), 10000);
             });
         });
     }

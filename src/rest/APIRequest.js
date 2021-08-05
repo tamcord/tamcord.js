@@ -65,13 +65,13 @@ class APIRequest {
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.client.options.restRequestTimeout).unref();
+    const timeout = this.client.setTimeout(() => controller.abort(), this.client.options.restRequestTimeout);
     return fetch(url, {
       method: this.method,
       headers,
       body,
       signal: controller.signal,
-    }).finally(() => clearTimeout(timeout));
+    }).finally(() => this.client.clearTimeout(timeout));
   }
 }
 

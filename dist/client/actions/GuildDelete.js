@@ -48,7 +48,7 @@ class GuildDeleteAction extends Action {
         return { guild };
     }
     scheduleForDeletion(id) {
-        setTimeout(() => this.deleted.delete(id), this.client.options.restWsBridgeTimeout).unref();
+        this.client.setTimeout(() => this.deleted.delete(id), this.client.options.restWsBridgeTimeout);
     }
 }
 module.exports = GuildDeleteAction;
