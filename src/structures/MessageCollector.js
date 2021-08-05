@@ -17,7 +17,7 @@ const { Events } = require('../util/Constants');
  */
 class MessageCollector extends Collector {
   /**
-   * @param {TextChannel|DMChannel} channel The channel
+   * @param {TextBasedChannels} channel The channel
    * @param {MessageCollectorOptions} options The options to be applied to this collector
    * @emits MessageCollector#message
    */
@@ -26,7 +26,7 @@ class MessageCollector extends Collector {
 
     /**
      * The channel
-     * @type {TextBasedChannel}
+     * @type {TextBasedChannels}
      */
     this.channel = channel;
 
@@ -71,7 +71,7 @@ class MessageCollector extends Collector {
      * @event MessageCollector#collect
      * @param {Message} message The message that was collected
      */
-    if (message.channel.id !== this.channel.id) return null;
+    if (message.channelId !== this.channel.id) return null;
     this.received++;
     return message.id;
   }
@@ -87,7 +87,7 @@ class MessageCollector extends Collector {
      * @event MessageCollector#dispose
      * @param {Message} message The message that was disposed of
      */
-    return message.channel.id === this.channel.id ? message.id : null;
+    return message.channelId === this.channel.id ? message.id : null;
   }
 
   /**

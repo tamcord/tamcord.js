@@ -28,16 +28,21 @@ class Message extends Base {
   /**
    * @param {Client} client The instantiating client
    * @param {APIMessage} data The data for the message
-   * @param {TextChannel|DMChannel|NewsChannel|ThreadChannel} channel The channel the message was sent in
    */
-  constructor(client, data, channel) {
+  constructor(client, data) {
     super(client);
 
     /**
-     * The channel that the message was sent in
-     * @type {TextChannel|DMChannel|NewsChannel|ThreadChannel}
+     * The id of the channel the message was sent in
+     * @type {Snowflake}
      */
-    this.channel = channel;
+    this.channelId = data.channel_id;
+
+    /**
+     * The id of the guild the message was sent in, if any
+     * @type {?Snowflake}
+     */
+    this.guildId = data.guild_id ?? null;
 
     /**
      * Whether this message has been deleted
@@ -300,7 +305,7 @@ class Message extends Base {
     }
 
     if (data.referenced_message) {
-      this.channel.messages._add(data.referenced_message);
+      this.channel?.messages._add(data.referenced_message);
     }
 
     /**
@@ -332,6 +337,15 @@ class Message extends Base {
     const clone = this._clone();
     this._patch(data, partial);
     return clone;
+  }
+
+  /**
+   * The channel that the message was sent in
+   * @type {TextChannel|DMChannel|NewsChannel|ThreadChannel}
+   * @readonly
+   */
+  get channel() {
+    return this.client.channels.resolve(this.channelId);
   }
 
   /**
@@ -377,7 +391,7 @@ class Message extends Base {
    * @readonly
    */
   get guild() {
-    return this.channel.guild ?? null;
+    return this.client.guilds.resolve(this.guildId);
   }
 
   /**
@@ -397,7 +411,7 @@ class Message extends Base {
    * @readonly
    */
   get thread() {
-    return this.channel.threads.resolve(this.id);
+    return this.channel?.threads.resolve(this.id) ?? null;
   }
 
   /**
@@ -406,7 +420,7 @@ class Message extends Base {
    * @readonly
    */
   get url() {
-    return `https://discord.com/channels/${this.guild ? this.guild.id : '@me'}/${this.channel.id}/${this.id}`;
+    return `https://discord.com/channels/${this.guildId ?? '@me'}/${this.channelId}/${this.id}`;
   }
 
   /**

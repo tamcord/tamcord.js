@@ -5,6 +5,8 @@ const CachedManager = require('./CachedManager');
 const Channel = require('../structures/Channel');
 const { Events, ThreadChannelTypes } = require('../util/Constants');
 
+let cacheWarningEmitted = false;
+
 /**
  * A manager of channels belonging to a client
  * @extends {CachedManager}
@@ -12,6 +14,13 @@ const { Events, ThreadChannelTypes } = require('../util/Constants');
 class ChannelManager extends CachedManager {
   constructor(client, iterable) {
     super(client, Channel, iterable);
+    if (!cacheWarningEmitted && this._cache.constructor.name !== 'Collection') {
+      cacheWarningEmitted = true;
+      process.emitWarning(
+        `Overriding the cache handling for ${this.constructor.name} is unsupported and breaks functionality.`,
+        'UnuspportedCacheOverwriteWarning',
+      );
+    }
   }
 
   /**

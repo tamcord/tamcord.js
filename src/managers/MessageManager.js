@@ -17,7 +17,7 @@ class MessageManager extends CachedManager {
 
     /**
      * The channel that the messages belong to
-     * @type {TextBasedChannel}
+     * @type {TextBasedChannels}
      */
     this.channel = channel;
   }
@@ -29,7 +29,7 @@ class MessageManager extends CachedManager {
    */
 
   _add(data, cache) {
-    return super._add(data, cache, { extras: [this.channel] });
+    return super._add(data, cache);
   }
 
   /**
