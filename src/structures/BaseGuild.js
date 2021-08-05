@@ -57,8 +57,12 @@ class BaseGuild extends Base {
   }
 
   get name() {
-    if (!this.name) return 'unavailable';
+    if (!this._name) return 'unavailable';
     return this._name;
+  }
+
+  set name(val) {
+    this._name = val;
   }
 
   /**
@@ -98,7 +102,7 @@ class BaseGuild extends Base {
    * @returns {?string}
    */
   iconURL({ format, size, dynamic } = {}) {
-    if (this.unavailable) return 'https://cdn1.iconfinder.com/data/icons/feather-2/24/clock.svg';
+    if (!this.available) return 'https://cdn1.iconfinder.com/data/icons/feather-2/24/clock.svg';
     if (!this.icon) return null;
     return this.client.rest.cdn.Icon(this.id, this.icon, format, size, dynamic);
   }

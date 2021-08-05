@@ -1,8 +1,8 @@
-name: Publish dev
+name: Publish npm
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */12 * * *'
+    - cron: "0 */12 * * *"
 jobs:
   npm:
     name: npm
@@ -21,14 +21,9 @@ jobs:
         # Remove --no-optional after Node 16 upgrade
         run: npm ci --ignore-scripts --no-optional
 
-      - name: Deprecate old versions
-        run: npm deprecate discord.js@"~13.0.0-dev" "no longer supported" || true
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
-
       - name: Publish
         run: |
           npm version --git-tag-version=false $(jq --raw-output '.version' package.json).t$(date +%s).$(git rev-parse --short HEAD)
-          npm publish --tag dev || true
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}

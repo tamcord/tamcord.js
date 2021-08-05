@@ -57,9 +57,12 @@ class BaseGuild extends Base {
         return new Date(this.createdTimestamp);
     }
     get name() {
-        if (!this.name)
+        if (!this._name)
             return 'unavailable';
         return this._name;
+    }
+    set name(val) {
+        this._name = val;
     }
     /**
      * The acronym that shows up in place of a guild icon
@@ -96,7 +99,7 @@ class BaseGuild extends Base {
      * @returns {?string}
      */
     iconURL({ format, size, dynamic } = {}) {
-        if (this.unavailable)
+        if (!this.available)
             return 'https://cdn1.iconfinder.com/data/icons/feather-2/24/clock.svg';
         if (!this.icon)
             return null;
