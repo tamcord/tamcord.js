@@ -1,15 +1,14 @@
 // @ts-nocheck
 'use strict';
 
-const DJSCollection = require('@discordjs/collection');
+const { Collection: Coll } = require('@discordjs/collection');
 const EventEmitter = require('events');
 
-console.log(DJSCollection);
 /**
  * A Collection which holds a max amount of entries and sweeps periodically.
  * @param {Iterable} [iterable=null] Optional entries passed to the Map constructor.
  */
-class Collection extends DJSCollection {
+class Collection extends Coll {
   constructor(iterable) {
     super(iterable);
 
