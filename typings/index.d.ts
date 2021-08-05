@@ -14,7 +14,7 @@ import {
   underscore,
   spoiler,
 } from '@discordjs/builders';
-import { Collection } from '@discordjs/collection';
+import { Collection as Coll } from '@discordjs/collection';
 import { ChildProcess } from 'child_process';
 import {
   APIActionRowComponent,
@@ -127,6 +127,10 @@ import {
 } from './rawDataTypes';
 
 //#region Classes
+
+export class Collection<K, V> extends Coll<K, V> {
+  events: EventEmitter;
+}
 
 export class Activity {
   public constructor(presence: Presence, data?: RawActivityData);
@@ -435,8 +439,6 @@ export class ClientVoiceManager {
   public readonly client: Client;
   public adapters: Map<Snowflake, InternalDiscordGatewayAdapterLibraryMethods>;
 }
-
-export { Collection } from '@discordjs/collection';
 
 export abstract class Collector<K, V, F extends unknown[] = []> extends EventEmitter {
   public constructor(client: Client, options?: CollectorOptions<[V, ...F]>);

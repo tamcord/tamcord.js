@@ -622,7 +622,7 @@ class Util extends null {
      */
     static delayFor(ms) {
         return new Promise(resolve => {
-            this.client.setTimeout(resolve, ms);
+            setTimeout(resolve, ms);
         });
     }
 }
