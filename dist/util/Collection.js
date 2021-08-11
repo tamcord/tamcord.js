@@ -14,14 +14,16 @@ class Collection extends Coll {
         this.events = new EventEmitter();
     }
     set(key, value) {
+        var _a;
         if (typeof value === 'object')
             value.cache = this;
-        this.events.emit('changed', key);
+        (_a = this.events) === null || _a === void 0 ? void 0 : _a.emit('changed', key);
         // console.log('collection set ' + key, value);
         return super.set(key, value);
     }
     delete(key) {
-        this.events.emit('changed', key);
+        var _a;
+        (_a = this.events) === null || _a === void 0 ? void 0 : _a.emit('changed', key);
         return super.delete(key);
     }
     array() {
