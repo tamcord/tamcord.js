@@ -2,7 +2,6 @@
 'use strict';
 
 const FormData = require('@discordjs/form-data');
-const AbortController = require('abort-controller');
 const fetch = require('node-fetch');
 const { UserAgent } = require('../util/Constants');
 

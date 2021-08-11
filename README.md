@@ -34,7 +34,13 @@ fosscord.js is a fork of [discord.js](https://discord.js.org/) that allows you t
 
 ## Installation
 
-**Node.js 14.6.0 or newer is required.**
+**Node.js 16.6.0 or newer is required.**
+
+```sh-session
+npm install discord.js
+yarn add discord.js
+pnpm add discord.js
+```
 
 Without voice support: `npm install fosscord.js`  
 With voice support ([@discordjs/opus](https://www.npmjs.com/package/@discordjs/opus)): `npm install fosscord.js @discordjs/opus`  
@@ -56,7 +62,15 @@ For production bots, using @discordjs/opus should be considered a necessity, esp
 
 ## Example usage
 
-First, we need to register a slash command against the Discord API:
+Install all required dependencies:
+
+```sh-session
+npm install discord.js @discordjs/rest discord-api-types
+yarn add discord.js @discordjs/rest discord-api-types
+pnpm add discord.js @discordjs/rest discord-api-types
+```
+
+Register a slash command against the Discord API:
 
 ```js
 const { REST } = require('@discordjs/rest');
@@ -87,8 +101,8 @@ const rest = new REST({ version: '9' }).setToken('token');
 Afterwards we can create a quite simple example bot:
 
 ```js
-const { Client, Intents } = require('fosscord.js');
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+const { Client, Intents } = require('discord.js');
+const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -123,7 +137,7 @@ client.login('token');
 
 Before creating an issue, please ensure that it hasn't already been reported/suggested, and double-check the
 [documentation](https://discord.js.org/#/docs).  
-See [the contribution guide](https://github.com/discordjs/discord.js/blob/master/.github/CONTRIBUTING.md) if you'd like to submit a PR.
+See [the contribution guide](https://github.com/discordjs/discord.js/blob/main/.github/CONTRIBUTING.md) if you'd like to submit a PR.
 
 ## Help
 

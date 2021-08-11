@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Represents a HTTP error from a request.
+ * Represents an HTTP error from a request.
  * @extends Error
  */
 class HTTPError extends Error {

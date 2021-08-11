@@ -478,7 +478,7 @@ class Util extends null {
     }
 
     if (color < 0 || color > 0xffffff) throw new RangeError('COLOR_RANGE');
-    else if (color && isNaN(color)) throw new TypeError('COLOR_CONVERT');
+    else if (Number.isNaN(color)) throw new TypeError('COLOR_CONVERT');
 
     return color;
   }
@@ -642,6 +642,21 @@ class Util extends null {
     return new Promise(resolve => {
       setTimeout(resolve, ms);
     });
+  }
+
+  /**
+   * Creates a sweep filter that sweeps archived threads
+   * @param {number} [lifetime=14400] How long a thread has to be archived to be valid for sweeping
+   * @returns {SweepFilter}
+   */
+  static archivedThreadSweepFilter(lifetime = 14400) {
+    const filter = require('./LimitedCollection').filterByLifetime({
+      lifetime,
+      getComparisonTimestamp: e => e.archiveTimestamp,
+      excludeFromSweep: e => !e.archived,
+    });
+    filter.isDefault = true;
+    return filter;
   }
 }
 

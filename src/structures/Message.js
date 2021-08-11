@@ -42,7 +42,7 @@ class Message extends Base {
      * The id of the guild the message was sent in, if any
      * @type {?Snowflake}
      */
-    this.guildId = data.guild_id ?? null;
+    this.guildId = data.guild_id ?? this.channel?.guild?.id ?? null;
 
     /**
      * Whether this message has been deleted
@@ -285,9 +285,9 @@ class Message extends Base {
     /**
      * Reference data sent in a message that contains ids identifying the referenced message
      * @typedef {Object} MessageReference
-     * @property {string} channelId The channel's id the message was referenced
-     * @property {?string} guildId The guild's id the message was referenced
-     * @property {?string} messageId The message's id that was referenced
+     * @property {Snowflake} channelId The channel's id the message was referenced
+     * @property {?Snowflake} guildId The guild's id the message was referenced
+     * @property {?Snowflake} messageId The message's id that was referenced
      */
 
     if ('message_reference' in data || !partial) {
@@ -305,7 +305,7 @@ class Message extends Base {
     }
 
     if (data.referenced_message) {
-      this.channel?.messages._add(data.referenced_message);
+      this.channel?.messages._add({ guild_id: data.message_reference?.guild_id, ...data.referenced_message });
     }
 
     /**
@@ -391,7 +391,7 @@ class Message extends Base {
    * @readonly
    */
   get guild() {
-    return this.client.guilds.resolve(this.guildId);
+    return this.client.guilds.resolve(this.guildId) ?? this.channel?.guild ?? null;
   }
 
   /**
@@ -411,7 +411,7 @@ class Message extends Base {
    * @readonly
    */
   get thread() {
-    return this.channel?.threads.resolve(this.id) ?? null;
+    return this.channel?.threads?.resolve(this.id) ?? null;
   }
 
   /**

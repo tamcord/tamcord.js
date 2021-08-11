@@ -140,7 +140,7 @@ class GuildMemberManager extends CachedManager {
    * @param {UserResolvable|FetchMemberOptions|FetchMembersOptions} [options] If a UserResolvable, the user to fetch.
    * If undefined, fetches all members.
    * If a query, it limits the results to users with similar usernames.
-   * @returns {Promise<GuildMember>|Promise<Collection<Snowflake, GuildMember>>}
+   * @returns {Promise<GuildMember|Collection<Snowflake, GuildMember>>}
    * @example
    * // Fetch all members from a guild
    * guild.members.fetch()
@@ -249,6 +249,8 @@ class GuildMemberManager extends CachedManager {
 
   /**
    * Options used for pruning guild members.
+   * <info>It's recommended to set {@link GuildPruneMembersOptions#count options.count}
+   * to `false` for large guilds.</info>
    * @typedef {Object} GuildPruneMembersOptions
    * @property {number} [days=7] Number of days of inactivity required to kick
    * @property {boolean} [dry=false] Get the number of users that will be kicked, without actually kicking them
@@ -259,7 +261,6 @@ class GuildMemberManager extends CachedManager {
 
   /**
    * Prunes members from the guild based on how long they have been inactive.
-   * <info>It's recommended to set `options.count` to `false` for large guilds.</info>
    * @param {GuildPruneMembersOptions} [options] Options for pruning
    * @returns {Promise<number|null>} The number of members that were/will be kicked
    * @example
@@ -316,7 +317,7 @@ class GuildMemberManager extends CachedManager {
    * @example
    * // Kick a user by id (or with a user/guild member object)
    * guild.members.kick('84484653687267328')
-   *   .then(user => console.log(`Kicked ${user.username ?? user.id ?? user} from ${guild.name}`))
+   *   .then(banInfo => console.log(`Kicked ${banInfo.user?.tag ?? banInfo.tag ?? banInfo}`))
    *   .catch(console.error);
    */
   async kick(user, reason) {
@@ -339,7 +340,7 @@ class GuildMemberManager extends CachedManager {
    * @example
    * // Ban a user by id (or with a user/guild member object)
    * guild.members.ban('84484653687267328')
-   *   .then(user => console.log(`Banned ${user.username ?? user.id ?? user} from ${guild.name}`))
+   *   .then(kickInfo => console.log(`Banned ${kickInfo.user?.tag ?? kickInfo.tag ?? kickInfo}`))
    *   .catch(console.error);
    */
   ban(user, options = { days: 0 }) {
@@ -347,11 +348,10 @@ class GuildMemberManager extends CachedManager {
   }
 
   /**
-   * Unbans a user from the guild.
+   * Unbans a user from the guild. Internally calls the {@link GuildBanManager#remove} method.
    * @param {UserResolvable} user The user to unban
    * @param {string} [reason] Reason for unbanning user
-   * @returns {Promise<User>}
-   * Internally calls the GuildBanManager#remove method.
+   * @returns {Promise<User>} The user that was unbanned
    * @example
    * // Unban a user by id (or with a user/guild member object)
    * guild.members.unban('84484653687267328')
@@ -379,13 +379,8 @@ class GuildMemberManager extends CachedManager {
     query,
     time = 120e3,
     nonce = SnowflakeUtil.generate(),
-    force = false,
   } = {}) {
     return new Promise((resolve, reject) => {
-      if (this.guild.memberCount === this.cache.size && !query && !limit && !presences && !user_ids && !force) {
-        resolve(this.cache);
-        return;
-      }
       if (!query && !user_ids) query = '';
       if (nonce.length > 32) throw new RangeError('MEMBER_FETCH_NONCE_LENGTH');
       this.guild.shard.send({
@@ -400,25 +395,19 @@ class GuildMemberManager extends CachedManager {
         },
       });
       const fetchedMembers = new Collection();
-      const option = Boolean(query || limit || presences || user_ids);
       let i = 0;
       const handler = (members, _, chunk) => {
         timeout.refresh();
         if (chunk.nonce !== nonce) return;
         i++;
         for (const member of members.values()) {
-          if (option) fetchedMembers.set(member.id, member);
+          fetchedMembers.set(member.id, member);
         }
-        if (
-          this.guild.memberCount <= this.cache.size ||
-          (option && members.size < 1000) ||
-          (limit && fetchedMembers.size >= limit) ||
-          i === chunk.count
-        ) {
+        if (members.size < 1000 || (limit && fetchedMembers.size >= limit) || i === chunk.count) {
           this.client.clearTimeout(timeout);
           this.client.removeListener(Events.GUILD_MEMBERS_CHUNK, handler);
           this.client.decrementMaxListeners();
-          let fetched = option ? fetchedMembers : this.cache;
+          let fetched = fetchedMembers;
           if (user_ids && !Array.isArray(user_ids) && fetched.size) fetched = fetched.first();
           resolve(fetched);
         }
