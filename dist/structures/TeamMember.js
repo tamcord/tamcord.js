@@ -42,7 +42,7 @@ class TeamMember extends Base {
         return this.user.id;
     }
     /**
-     * When concatenated with a string, this automatically returns the team members's mention instead of the
+     * When concatenated with a string, this automatically returns the team member's mention instead of the
      * TeamMember object.
      * @returns {string}
      * @example

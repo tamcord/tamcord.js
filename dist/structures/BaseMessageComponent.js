@@ -20,11 +20,12 @@ class BaseMessageComponent {
      * @typedef {MessageActionRowOptions|MessageButtonOptions|MessageSelectMenuOptions} MessageComponentOptions
      */
     /**
-     * Components that can be sent in a message. This can be:
+     * Components that can be sent in a message. These can be:
      * * MessageActionRow
      * * MessageButton
      * * MessageSelectMenu
      * @typedef {MessageActionRow|MessageButton|MessageSelectMenu} MessageComponent
+     * @see {@link https://discord.com/developers/docs/interactions/message-components#component-object-component-types}
      */
     /**
      * Data that can be resolved to a MessageComponentType. This can be:

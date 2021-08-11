@@ -47,10 +47,14 @@ class ClientUser extends User {
         return this.client.presence;
     }
     /**
+     * Data used to edit the logged in client
+     * @typdef {Object} ClientUserEditData
+     * @property {string} [username] The new username
+     * @property {BufferResolvable|Base64Resolvable} [avatar] The new avatar
+     */
+    /**
      * Edits the logged in client.
-     * @param {APIModifyClientData} data The new data
-     * @param {string} [data.username] The new username
-     * @param {BufferResolvable|Base64Resolvable} [data.avatar] The new avatar
+     * @param {ClientUserEditData} data The new data
      */
     edit(data) {
         return __awaiter(this, void 0, void 0, function* () {

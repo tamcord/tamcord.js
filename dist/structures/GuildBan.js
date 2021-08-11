@@ -35,8 +35,7 @@ class GuildBan extends Base {
         }
     }
     /**
-     * Whether this GuildBan is a partial
-     * If the reason is not provided the value is null
+     * Whether this GuildBan is partial. If the reason is not provided the value is null
      * @type {boolean}
      * @readonly
      */

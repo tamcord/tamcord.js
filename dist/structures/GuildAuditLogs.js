@@ -19,7 +19,7 @@ const Permissions = require('../util/Permissions');
 const SnowflakeUtil = require('../util/SnowflakeUtil');
 const Util = require('../util/Util');
 /**
- * The target type of an entry, e.g. `GUILD`. Here are the available types:
+ * The target type of an entry. Here are the available types:
  * * GUILD
  * * CHANNEL
  * * USER
@@ -103,6 +103,7 @@ const Targets = {
  * * THREAD_UPDATE: 111
  * * THREAD_DELETE: 112
  * @typedef {?(number|string)} AuditLogAction
+ * @see {@link https://discord.com/developers/docs/resources/audit-log#audit-log-entry-object-audit-log-events}
  */
 /**
  * All available actions keyed under their names to their numeric values.

@@ -37,7 +37,7 @@ class Message extends Base {
      * @param {APIMessage} data The data for the message
      */
     constructor(client, data) {
-        var _a;
+        var _a, _b, _c, _d;
         super(client);
         /**
          * The id of the channel the message was sent in
@@ -48,7 +48,7 @@ class Message extends Base {
          * The id of the guild the message was sent in, if any
          * @type {?Snowflake}
          */
-        this.guildId = (_a = data.guild_id) !== null && _a !== void 0 ? _a : null;
+        this.guildId = (_d = (_a = data.guild_id) !== null && _a !== void 0 ? _a : (_c = (_b = this.channel) === null || _b === void 0 ? void 0 : _b.guild) === null || _c === void 0 ? void 0 : _c.id) !== null && _d !== void 0 ? _d : null;
         /**
          * Whether this message has been deleted
          * @type {boolean}
@@ -58,7 +58,7 @@ class Message extends Base {
             this._patch(data);
     }
     _patch(data, partial = false) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
         /**
          * The message's id
          * @type {Snowflake}
@@ -265,9 +265,9 @@ class Message extends Base {
         /**
          * Reference data sent in a message that contains ids identifying the referenced message
          * @typedef {Object} MessageReference
-         * @property {string} channelId The channel's id the message was referenced
-         * @property {?string} guildId The guild's id the message was referenced
-         * @property {?string} messageId The message's id that was referenced
+         * @property {Snowflake} channelId The channel's id the message was referenced
+         * @property {?Snowflake} guildId The guild's id the message was referenced
+         * @property {?Snowflake} messageId The message's id that was referenced
          */
         if ('message_reference' in data || !partial) {
             /**
@@ -283,7 +283,7 @@ class Message extends Base {
                 : null;
         }
         if (data.referenced_message) {
-            (_s = this.channel) === null || _s === void 0 ? void 0 : _s.messages._add(data.referenced_message);
+            (_s = this.channel) === null || _s === void 0 ? void 0 : _s.messages._add(Object.assign({ guild_id: (_t = data.message_reference) === null || _t === void 0 ? void 0 : _t.guild_id }, data.referenced_message));
         }
         /**
          * Partial data of the interaction that a message is a reply to
@@ -362,7 +362,8 @@ class Message extends Base {
      * @readonly
      */
     get guild() {
-        return this.client.guilds.resolve(this.guildId);
+        var _a, _b, _c;
+        return (_c = (_a = this.client.guilds.resolve(this.guildId)) !== null && _a !== void 0 ? _a : (_b = this.channel) === null || _b === void 0 ? void 0 : _b.guild) !== null && _c !== void 0 ? _c : null;
     }
     /**
      * Whether this message has a thread associated with it
@@ -380,8 +381,8 @@ class Message extends Base {
      * @readonly
      */
     get thread() {
-        var _a, _b;
-        return (_b = (_a = this.channel) === null || _a === void 0 ? void 0 : _a.threads.resolve(this.id)) !== null && _b !== void 0 ? _b : null;
+        var _a, _b, _c;
+        return (_c = (_b = (_a = this.channel) === null || _a === void 0 ? void 0 : _a.threads) === null || _b === void 0 ? void 0 : _b.resolve(this.id)) !== null && _c !== void 0 ? _c : null;
     }
     /**
      * The url to jump to this message

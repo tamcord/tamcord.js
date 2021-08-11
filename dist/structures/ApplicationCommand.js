@@ -2,7 +2,7 @@
 'use strict';
 const Base = require('./Base');
 const ApplicationCommandPermissionsManager = require('../managers/ApplicationCommandPermissionsManager');
-const { ApplicationCommandOptionTypes } = require('../util/Constants');
+const { ApplicationCommandOptionTypes, ApplicationCommandTypes } = require('../util/Constants');
 const SnowflakeUtil = require('../util/SnowflakeUtil');
 /**
  * Represents an application command.
@@ -38,6 +38,11 @@ class ApplicationCommand extends Base {
          * @type {ApplicationCommandPermissionsManager}
          */
         this.permissions = new ApplicationCommandPermissionsManager(this);
+        /**
+         * The type of this application command
+         * @type {ApplicationCommandType}
+         */
+        this.type = ApplicationCommandTypes[data.type];
         this._patch(data);
     }
     _patch(data) {
@@ -93,6 +98,7 @@ class ApplicationCommand extends Base {
      * @typedef {Object} ApplicationCommandData
      * @property {string} name The name of the command
      * @property {string} description The description of the command
+     * @property {ApplicationCommandType} [type] The type of the command
      * @property {ApplicationCommandOptionData[]} [options] Options for the command
      * @property {boolean} [defaultPermission] Whether the command is enabled by default when the app is added to a guild
      */

@@ -239,7 +239,8 @@ class ThreadChannel extends Channel {
         return (_b = (_a = this.parent) === null || _a === void 0 ? void 0 : _a.permissionsFor(memberOrRole)) !== null && _b !== void 0 ? _b : null;
     }
     /**
-     * Fetches the owner of this thread
+     * Fetches the owner of this thread. If the thread member object isn't needed,
+     * use {@link ThreadChannel#ownerId} instead.
      * @param {FetchOwnerOptions} [options] The options for fetching the member
      * @returns {Promise<?ThreadMember>}
      */
@@ -280,11 +281,21 @@ class ThreadChannel extends Channel {
     edit(data, reason) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            let autoArchiveDuration = data.autoArchiveDuration;
+            if (data.autoArchiveDuration === 'MAX') {
+                autoArchiveDuration = 1440;
+                if (this.guild.features.includes('SEVEN_DAY_THREAD_ARCHIVE')) {
+                    autoArchiveDuration = 10080;
+                }
+                else if (this.guild.features.includes('THREE_DAY_THREAD_ARCHIVE')) {
+                    autoArchiveDuration = 4320;
+                }
+            }
             const newData = yield this.client.api.channels(this.id).patch({
                 data: {
                     name: ((_a = data.name) !== null && _a !== void 0 ? _a : this.name).trim(),
                     archived: data.archived,
-                    auto_archive_duration: data.autoArchiveDuration,
+                    auto_archive_duration: autoArchiveDuration,
                     rate_limit_per_user: data.rateLimitPerUser,
                     locked: data.locked,
                 },

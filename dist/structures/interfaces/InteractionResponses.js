@@ -20,7 +20,7 @@ const MessagePayload = require('../MessagePayload');
 class InteractionResponses {
     /**
      * Options for deferring the reply to an {@link Interaction}.
-     * @typedef {Object} InteractionDeferOptions
+     * @typedef {Object} InteractionDeferReplyOptions
      * @property {boolean} [ephemeral] Whether the reply should be ephemeral
      * @property {boolean} [fetchReply] Whether to fetch the reply
      */
@@ -42,20 +42,20 @@ class InteractionResponses {
      */
     /**
      * Defers the reply to this interaction.
-     * @param {InteractionDeferOptions} [options] Options for deferring the reply to this interaction
+     * @param {InteractionDeferReplyOptions} [options] Options for deferring the reply to this interaction
      * @returns {Promise<Message|APIMessage|void>}
      * @example
      * // Defer the reply to this interaction
-     * interaction.defer()
+     * interaction.deferReply()
      *   .then(console.log)
      *   .catch(console.error)
      * @example
      * // Defer to send an ephemeral reply later
-     * interaction.defer({ ephemeral: true })
+     * interaction.deferReply({ ephemeral: true })
      *   .then(console.log)
      *   .catch(console.error);
      */
-    defer(options = {}) {
+    deferReply(options = {}) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (this.deferred || this.replied)
@@ -241,7 +241,16 @@ class InteractionResponses {
         });
     }
     static applyToClass(structure, ignore = []) {
-        const props = ['defer', 'reply', 'fetchReply', 'editReply', 'deleteReply', 'followUp', 'deferUpdate', 'update'];
+        const props = [
+            'deferReply',
+            'reply',
+            'fetchReply',
+            'editReply',
+            'deleteReply',
+            'followUp',
+            'deferUpdate',
+            'update',
+        ];
         for (const prop of props) {
             if (ignore.includes(prop))
                 continue;

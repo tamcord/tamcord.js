@@ -71,9 +71,9 @@ class Team extends Base {
         return new Date(this.createdTimestamp);
     }
     /**
-     * A link to the teams's icon.
+     * A link to the team's icon.
      * @param {StaticImageURLOptions} [options={}] Options for the Image URL
-     * @returns {?string} URL to the icon
+     * @returns {?string}
      */
     iconURL({ format, size } = {}) {
         if (!this.icon)

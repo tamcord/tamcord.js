@@ -53,7 +53,7 @@ class MessagePayload {
         this.files = null;
     }
     /**
-     * Whether or not the target is a webhook
+     * Whether or not the target is a {@link Webhook} or a {@link WebhookClient}
      * @type {boolean}
      * @readonly
      */
@@ -63,7 +63,7 @@ class MessagePayload {
         return this.target instanceof Webhook || this.target instanceof WebhookClient;
     }
     /**
-     * Whether or not the target is a user
+     * Whether or not the target is a {@link User}
      * @type {boolean}
      * @readonly
      */
@@ -73,7 +73,7 @@ class MessagePayload {
         return this.target instanceof User || this.target instanceof GuildMember;
     }
     /**
-     * Whether or not the target is a message
+     * Whether or not the target is a {@link Message}
      * @type {boolean}
      * @readonly
      */
@@ -82,7 +82,7 @@ class MessagePayload {
         return this.target instanceof Message;
     }
     /**
-     * Wether or not the target is a message manager
+     * Wether or not the target is a {@link MessageManager}
      * @type {boolean}
      * @readonly
      */
@@ -91,7 +91,7 @@ class MessagePayload {
         return this.target instanceof MessageManager;
     }
     /**
-     * Whether or not the target is an interaction
+     * Whether or not the target is an {@link Interaction} or an {@link InteractionWebhook}
      * @type {boolean}
      * @readonly
      */
@@ -233,7 +233,7 @@ class MessagePayload {
         });
     }
     /**
-     * Creates a `MessagePayload` from user-level arguments.
+     * Creates a {@link MessagePayload} from user-level arguments.
      * @param {MessageTarget} target Target to send to
      * @param {string|MessageOptions|WebhookMessageOptions} options Options or content to use
      * @param {MessageOptions|WebhookMessageOptions} [extra={}] - Extra options to add onto specified options

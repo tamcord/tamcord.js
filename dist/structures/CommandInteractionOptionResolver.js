@@ -126,7 +126,7 @@ class CommandInteractionOptionResolver {
      * Gets a channel option.
      * @param {string} name The name of the option.
      * @param {boolean} [required=false] Whether to throw an error if the option is not found.
-     * @returns {?(GuildChannel|APIInteractionDataResolvedChannel)}
+     * @returns {?(GuildChannel|APIGuildChannel)}
      * The value of the option, or null if not set and not required.
      */
     getChannel(name, required = false) {
@@ -182,7 +182,7 @@ class CommandInteractionOptionResolver {
      * Gets a member option.
      * @param {string} name The name of the option.
      * @param {boolean} [required=false] Whether to throw an error if the option is not found.
-     * @returns {?(GuildMember|APIInteractionDataResolvedGuildMember)}
+     * @returns {?(GuildMember|APIGuildMember)}
      * The value of the option, or null if not set and not required.
      */
     getMember(name, required = false) {
@@ -205,13 +205,25 @@ class CommandInteractionOptionResolver {
      * Gets a mentionable option.
      * @param {string} name The name of the option.
      * @param {boolean} [required=false] Whether to throw an error if the option is not found.
-     * @returns {?(User|GuildMember|APIInteractionDataResolvedGuildMember|Role|APIRole)}
+     * @returns {?(User|GuildMember|APIGuildMember|Role|APIRole)}
      * The value of the option, or null if not set and not required.
      */
     getMentionable(name, required = false) {
         var _a, _b, _c;
         const option = this._getTypedOption(name, 'MENTIONABLE', ['user', 'member', 'role'], required);
         return (_c = (_b = (_a = option === null || option === void 0 ? void 0 : option.member) !== null && _a !== void 0 ? _a : option === null || option === void 0 ? void 0 : option.user) !== null && _b !== void 0 ? _b : option === null || option === void 0 ? void 0 : option.role) !== null && _c !== void 0 ? _c : null;
+    }
+    /**
+     * Gets a message option.
+     * @param {string} name The name of the option.
+     * @param {boolean} [required=false] Whether to throw an error if the option is not found.
+     * @returns {?(Message|APIMessage)}
+     * The value of the option, or null if not set and not required.
+     */
+    getMessage(name, required = false) {
+        var _a;
+        const option = this._getTypedOption(name, '_MESSAGE', ['message'], required);
+        return (_a = option === null || option === void 0 ? void 0 : option.message) !== null && _a !== void 0 ? _a : null;
     }
 }
 module.exports = CommandInteractionOptionResolver;
