@@ -31,13 +31,6 @@ let cacheWarningEmitted = false;
 class GuildManager extends CachedManager {
   constructor(client, iterable) {
     super(client, Guild, iterable);
-    if (!cacheWarningEmitted && this._cache.constructor.name !== 'Collection') {
-      cacheWarningEmitted = true;
-      process.emitWarning(
-        `Overriding the cache handling for ${this.constructor.name} is unsupported and breaks functionality.`,
-        'UnsupportedCacheOverwriteWarning',
-      );
-    }
   }
 
   /**

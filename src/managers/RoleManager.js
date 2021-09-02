@@ -17,13 +17,6 @@ let cacheWarningEmitted = false;
 class RoleManager extends CachedManager {
   constructor(guild, iterable) {
     super(guild.client, Role, iterable);
-    if (!cacheWarningEmitted && this._cache.constructor.name !== 'Collection') {
-      cacheWarningEmitted = true;
-      process.emitWarning(
-        `Overriding the cache handling for ${this.constructor.name} is unsupported and breaks functionality.`,
-        'UnsupportedCacheOverwriteWarning',
-      );
-    }
 
     /**
      * The guild belonging to this manager

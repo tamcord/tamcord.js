@@ -17,13 +17,6 @@ let cacheWarningEmitted = false;
 class PermissionOverwriteManager extends CachedManager {
   constructor(channel, iterable) {
     super(channel.client, PermissionOverwrites);
-    if (!cacheWarningEmitted && this._cache.constructor.name !== 'Collection') {
-      cacheWarningEmitted = true;
-      process.emitWarning(
-        `Overriding the cache handling for ${this.constructor.name} is unsupported and breaks functionality.`,
-        'UnsupportedCacheOverwriteWarning',
-      );
-    }
 
     /**
      * The channel of the permission overwrite this manager belongs to
