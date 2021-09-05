@@ -1,10 +1,7 @@
 // @ts-nocheck
 'use strict';
-
 const { WSEvents } = require('../../../util/Constants');
-
 const handlers = {};
-
 handlers['APPLICATION_COMMAND_CREATE'] = require('./APPLICATION_COMMAND_CREATE.js');
 handlers['APPLICATION_COMMAND_DELETE'] = require('./APPLICATION_COMMAND_DELETE.js');
 handlers['APPLICATION_COMMAND_UPDATE'] = require('./APPLICATION_COMMAND_UPDATE.js');
@@ -55,5 +52,4 @@ handlers['USER_UPDATE'] = require('./USER_UPDATE.js');
 handlers['VOICE_SERVER_UPDATE'] = require('./VOICE_SERVER_UPDATE.js');
 handlers['VOICE_STATE_UPDATE'] = require('./VOICE_STATE_UPDATE.js');
 handlers['WEBHOOKS_UPDATE'] = require('./WEBHOOKS_UPDATE.js');
-
 module.exports = handlers;

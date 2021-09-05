@@ -1,6 +1,5 @@
 // @ts-nocheck
 'use strict';
-
 module.exports = (client, packet) => {
-  client.actions.UserUpdate.handle(packet.d);
+    client.actions.UserUpdate.handle(packet.d);
 };

@@ -1,6 +1,5 @@
 // @ts-nocheck
 'use strict';
-
 module.exports = (client, packet) => {
-  client.actions.WebhooksUpdate.handle(packet.d);
+    client.actions.WebhooksUpdate.handle(packet.d);
 };
