@@ -1,5 +1,6 @@
 // @ts-nocheck
 'use strict';
+
 module.exports = (client, packet) => {
-    client.actions.ThreadMembersUpdate.handle(packet.d);
+  client.actions.ThreadMembersUpdate.handle(packet.d);
 };

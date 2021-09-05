@@ -1,5 +1,6 @@
 // @ts-nocheck
 'use strict';
+
 module.exports = (client, packet) => {
-    client.actions.StageInstanceDelete.handle(packet.d);
+  client.actions.StageInstanceDelete.handle(packet.d);
 };
