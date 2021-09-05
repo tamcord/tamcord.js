@@ -1,5 +1,6 @@
 // @ts-nocheck
 'use strict';
+
 /**
  * Rate limit data
  * @typedef {Object} RateLimitData
@@ -10,18 +11,21 @@
  * @property {string} route The route of the request relative to the HTTP endpoint
  * @property {boolean} global Whether this is a global rate limit
  */
+
 /**
  * Whether this rate limit should throw an Error
  * @typedef {Function} RateLimitQueueFilter
  * @param {RateLimitData} rateLimitData The data of this rate limit
  * @returns {boolean|Promise<boolean>}
  */
+
 /**
  * @typedef {Function} CacheFactory
  * @param {Function} manager The manager class the cache is being requested from.
  * @param {Function} holds The class that the cache will hold.
  * @returns {Collection} A Collection used to store the cache of the manager.
  */
+
 /**
  * Options for a client.
  * @typedef {Object} ClientOptions
@@ -69,12 +73,14 @@
  * @property {WebsocketOptions} [ws] Options for the WebSocket
  * @property {HTTPOptions} [http] HTTP options
  */
+
 /**
  * WebSocket options (these are left as snake_case to match the API)
  * @typedef {Object} WebsocketOptions
  * @property {number} [large_threshold=50] Number of members in a guild after which offline users will no longer be
  * sent in the initial guild member list, must be between 50 and 250
  */
+
 /**
  * HTTP options
  * @typedef {Object} HTTPOptions
@@ -85,148 +91,155 @@
  * @property {string} [template='https://discord.new'] Base url of templates
  * @property {Object} [headers] Additional headers to send for all API requests
  */
+
 /**
  * Contains various utilities for client options.
  */
 class Options extends null {
-    /**
-     * The default client options.
-     * @returns {ClientOptions}
-     */
-    static createDefault() {
-        return {
-            shardCount: 1,
-            makeCache: this.cacheWithLimits(this.defaultMakeCacheSettings),
-            messageCacheLifetime: 0,
-            messageSweepInterval: 0,
-            invalidRequestWarningInterval: 0,
-            partials: [],
-            restWsBridgeTimeout: 5000,
-            restRequestTimeout: 15000,
-            restGlobalRateLimit: 0,
-            retryLimit: 1,
-            restTimeOffset: 500,
-            restSweepInterval: 60,
-            failIfNotExists: true,
-            userAgentSuffix: [],
-            presence: {},
-            ws: {
-                large_threshold: 50,
-                compress: false,
-                properties: {
-                    $os: 'browser',
-                    $browser: 'discord.js',
-                    $device: 'discord.js',
-                },
-                version: 9,
-            },
-            http: {
-                version: 9,
-                api: 'https://discord.com/api',
-                cdn: 'https://cdn.discordapp.com',
-                invite: 'https://discord.gg',
-                template: 'https://discord.new',
-            },
-        };
-    }
-    /**
-     * Create a cache factory using predefined settings to sweep or limit.
-     * @param {Object<string, LimitedCollectionOptions|number>} [settings={}] Settings passed to the relevant constructor.
-     * If no setting is provided for a manager, it uses Collection.
-     * If a number is provided for a manager, it uses that number as the max size for a LimitedCollection.
-     * If LimitedCollectionOptions are provided for a manager, it uses those settings to form a LimitedCollection.
-     * @returns {CacheFactory}
-     * @example
-     * // Store up to 200 messages per channel and discard archived threads if they were archived more than 4 hours ago.
-     * // Note archived threads will remain in the guild and client caches with these settings
-     * Options.cacheWithLimits({
-     *    MessageManager: 200,
-     *    ThreadManager: {
-     *      sweepInterval: 3600,
-     *      sweepFilter: LimitedCollection.filterByLifetime({
-     *        getComparisonTimestamp: e => e.archiveTimestamp,
-     *        excludeFromSweep: e => !e.archived,
-     *      }),
-     *    },
-     *  });
-     * @example
-     * // Sweep messages every 5 minutes, removing messages that have not been edited or created in the last 30 minutes
-     * Options.cacheWithLimits({
-     *   // Keep default thread sweeping behavior
-     *   ...Options.defaultMakeCacheSettings,
-     *   // Override MessageManager
-     *   MessageManager: {
-     *     sweepInterval: 300,
-     *     sweepFilter: LimitedCollection.filterByLifetime({
-     *       lifetime: 1800,
-     *       getComparisonTimestamp: e => e.editedTimestamp ?? e.createdTimestamp,
-     *     })
-     *   }
-     * });
-     */
-    static cacheWithLimits(settings = {}) {
-        const Collection = require('./Collection');
-        const LimitedCollection = require('./LimitedCollection');
-        return manager => {
-            const setting = settings[manager.name];
-            /* eslint-disable-next-line eqeqeq */
-            if (setting == null) {
-                return new Collection();
-            }
-            if (typeof setting === 'number') {
-                if (setting === Infinity) {
-                    return new Collection();
-                }
-                return new LimitedCollection({ maxSize: setting });
-            }
-            /* eslint-disable eqeqeq */
-            const noSweeping = setting.sweepFilter == null ||
-                setting.sweepInterval == null ||
-                setting.sweepInterval <= 0 ||
-                setting.sweepInterval === Infinity;
-            const noLimit = setting.maxSize == null || setting.maxSize === Infinity;
-            /* eslint-enable eqeqeq */
-            if (noSweeping && noLimit) {
-                return new Collection();
-            }
-            return new LimitedCollection(setting);
-        };
-    }
-    /**
-     * Create a cache factory that always caches everything.
-     * @returns {CacheFactory}
-     */
-    static cacheEverything() {
-        const Collection = require('./Collection');
-        return () => new Collection();
-    }
-    /**
-     * The default settings passed to {@link Options.cacheWithLimits}.
-     * The caches that this changes are:
-     * * `MessageManager` - Limit to 200 messages
-     * * `ChannelManager` - Sweep archived threads
-     * * `GuildChannelManager` - Sweep archived threads
-     * * `ThreadManager` - Sweep archived threads
-     * <info>If you want to keep default behavior and add on top of it you can use this object and add on to it, e.g.
-     * `makeCache: Options.cacheWithLimits({ ...Options.defaultMakeCacheSettings, ReactionManager: 0 })`</info>
-     * @type {Object<string, LimitedCollectionOptions|number>}
-     */
-    static get defaultMakeCacheSettings() {
-        return {
-            MessageManager: 200,
-            ChannelManager: {
-                sweepInterval: 3600,
-                sweepFilter: require('./Util').archivedThreadSweepFilter(),
-            },
-            GuildChannelManager: {
-                sweepInterval: 3600,
-                sweepFilter: require('./Util').archivedThreadSweepFilter(),
-            },
-            ThreadManager: {
-                sweepInterval: 3600,
-                sweepFilter: require('./Util').archivedThreadSweepFilter(),
-            },
-        };
-    }
+  /**
+   * The default client options.
+   * @returns {ClientOptions}
+   */
+  static createDefault() {
+    return {
+      shardCount: 1,
+      makeCache: this.cacheWithLimits(this.defaultMakeCacheSettings),
+      messageCacheLifetime: 0,
+      messageSweepInterval: 0,
+      invalidRequestWarningInterval: 0,
+      partials: [],
+      restWsBridgeTimeout: 5000,
+      restRequestTimeout: 15000,
+      restGlobalRateLimit: 0,
+      retryLimit: 1,
+      restTimeOffset: 500,
+      restSweepInterval: 60,
+      failIfNotExists: true,
+      userAgentSuffix: [],
+      presence: {},
+      ws: {
+        large_threshold: 50,
+        compress: false,
+        properties: {
+          $os: 'browser',
+          $browser: 'discord.js',
+          $device: 'discord.js',
+        },
+        version: 9,
+      },
+      http: {
+        version: 9,
+        api: 'https://discord.com/api',
+        cdn: 'https://cdn.discordapp.com',
+        invite: 'https://discord.gg',
+        template: 'https://discord.new',
+      },
+    };
+  }
+
+  /**
+   * Create a cache factory using predefined settings to sweep or limit.
+   * @param {Object<string, LimitedCollectionOptions|number>} [settings={}] Settings passed to the relevant constructor.
+   * If no setting is provided for a manager, it uses Collection.
+   * If a number is provided for a manager, it uses that number as the max size for a LimitedCollection.
+   * If LimitedCollectionOptions are provided for a manager, it uses those settings to form a LimitedCollection.
+   * @returns {CacheFactory}
+   * @example
+   * // Store up to 200 messages per channel and discard archived threads if they were archived more than 4 hours ago.
+   * // Note archived threads will remain in the guild and client caches with these settings
+   * Options.cacheWithLimits({
+   *    MessageManager: 200,
+   *    ThreadManager: {
+   *      sweepInterval: 3600,
+   *      sweepFilter: LimitedCollection.filterByLifetime({
+   *        getComparisonTimestamp: e => e.archiveTimestamp,
+   *        excludeFromSweep: e => !e.archived,
+   *      }),
+   *    },
+   *  });
+   * @example
+   * // Sweep messages every 5 minutes, removing messages that have not been edited or created in the last 30 minutes
+   * Options.cacheWithLimits({
+   *   // Keep default thread sweeping behavior
+   *   ...Options.defaultMakeCacheSettings,
+   *   // Override MessageManager
+   *   MessageManager: {
+   *     sweepInterval: 300,
+   *     sweepFilter: LimitedCollection.filterByLifetime({
+   *       lifetime: 1800,
+   *       getComparisonTimestamp: e => e.editedTimestamp ?? e.createdTimestamp,
+   *     })
+   *   }
+   * });
+   */
+  static cacheWithLimits(settings = {}) {
+    const Collection = require('./Collection');
+    const LimitedCollection = require('./LimitedCollection');
+
+    return manager => {
+      const setting = settings[manager.name];
+      /* eslint-disable-next-line eqeqeq */
+      if (setting == null) {
+        return new Collection();
+      }
+      if (typeof setting === 'number') {
+        if (setting === Infinity) {
+          return new Collection();
+        }
+        return new LimitedCollection({ maxSize: setting });
+      }
+      /* eslint-disable eqeqeq */
+      const noSweeping =
+        setting.sweepFilter == null ||
+        setting.sweepInterval == null ||
+        setting.sweepInterval <= 0 ||
+        setting.sweepInterval === Infinity;
+      const noLimit = setting.maxSize == null || setting.maxSize === Infinity;
+      /* eslint-enable eqeqeq */
+      if (noSweeping && noLimit) {
+        return new Collection();
+      }
+      return new LimitedCollection(setting);
+    };
+  }
+
+  /**
+   * Create a cache factory that always caches everything.
+   * @returns {CacheFactory}
+   */
+  static cacheEverything() {
+    const Collection = require('./Collection');
+    return () => new Collection();
+  }
+
+  /**
+   * The default settings passed to {@link Options.cacheWithLimits}.
+   * The caches that this changes are:
+   * * `MessageManager` - Limit to 200 messages
+   * * `ChannelManager` - Sweep archived threads
+   * * `GuildChannelManager` - Sweep archived threads
+   * * `ThreadManager` - Sweep archived threads
+   * <info>If you want to keep default behavior and add on top of it you can use this object and add on to it, e.g.
+   * `makeCache: Options.cacheWithLimits({ ...Options.defaultMakeCacheSettings, ReactionManager: 0 })`</info>
+   * @type {Object<string, LimitedCollectionOptions|number>}
+   */
+  static get defaultMakeCacheSettings() {
+    return {
+      MessageManager: 200,
+      ChannelManager: {
+        sweepInterval: 3600,
+        sweepFilter: require('./Util').archivedThreadSweepFilter(),
+      },
+      GuildChannelManager: {
+        sweepInterval: 3600,
+        sweepFilter: require('./Util').archivedThreadSweepFilter(),
+      },
+      ThreadManager: {
+        sweepInterval: 3600,
+        sweepFilter: require('./Util').archivedThreadSweepFilter(),
+      },
+    };
+  }
 }
+
 module.exports = Options;
