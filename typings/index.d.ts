@@ -131,9 +131,9 @@ import {
 //#region Classes
 
 export class Collection<K, V> extends Coll<K, V> {
-  events: EventEmitter;
+  public events: EventEmitter;
 
-  array(): V[]
+  public array(): V[];
 }
 
 export class Activity {
