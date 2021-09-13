@@ -20,7 +20,7 @@
 fosscord.js is a fork of [discord.js](https://discord.js.org/) that allows you to easily interact with the
 [Fosscord API](https://docs.fosscord.com/) and is backwards compatible to discord.js.
 
-### Discord.js
+### Fosscord.js
 
 - Object-oriented
 - Predictable abstractions
@@ -37,9 +37,9 @@ fosscord.js is a fork of [discord.js](https://discord.js.org/) that allows you t
 **Node.js 16.6.0 or newer is required.**
 
 ```sh-session
-npm install discord.js
-yarn add discord.js
-pnpm add discord.js
+npm install fosscord.js
+yarn add fosscord.js
+pnpm add fosscord.js
 ```
 
 Without voice support: `npm install fosscord.js`  
@@ -65,9 +65,9 @@ For production bots, using @discordjs/opus should be considered a necessity, esp
 Install all required dependencies:
 
 ```sh-session
-npm install discord.js @discordjs/rest discord-api-types
-yarn add discord.js @discordjs/rest discord-api-types
-pnpm add discord.js @discordjs/rest discord-api-types
+npm install fosscord.js @discordjs/rest discord-api-types
+yarn add fosscord.js @discordjs/rest discord-api-types
+pnpm add fosscord.js @discordjs/rest discord-api-types
 ```
 
 Register a slash command against the Discord API:
@@ -101,7 +101,7 @@ const rest = new REST({ version: '9' }).setToken('token');
 Afterwards we can create a quite simple example bot:
 
 ```js
-const { Client, Intents } = require('discord.js');
+const { Client, Intents } = require('fosscord.js');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
 client.on('ready', () => {
@@ -125,7 +125,7 @@ client.login('token');
 - [Documentation](https://docs.fosscord.com) ([source](https://github.com/fosscord/fosscord-docs))
 - [Fosscord Discord server](https://discord.gg/ZrnGQP6p3d)
 - [Discord.js Guide](https://discordjs.guide/) ([source](https://github.com/discordjs/guide)) - this is still for stable
-- [Discord.js Discord server](https://discord.gg/djs)
+- [fosscord.js Discord server](https://discord.gg/ZrnGQP6p3d)
 - [GitHub](https://github.com/fosscord/fosscord.js)
 - [NPM](https://www.npmjs.com/package/fosscord.js)
 
