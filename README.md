@@ -2,7 +2,7 @@
   <br />
     <img width="100" src="https://raw.githubusercontent.com/fosscord/fosscord/master/assets/logo_big_transparent.png" />
 </p>
-<h1 align="center">Fosscord.JS</h1>
+<h1 align="center">Tamcord.JS</h1>
 
 <p>
    <a href="https://discord.gg/ZrnGQP6p3d">
@@ -17,15 +17,15 @@
 
 ## About
 
-fosscord.js is a fork of [discord.js](https://discord.js.org/) that allows you to easily interact with the
+tamcord is a fork of fosscord.js which is a fork of [discord.js](https://discord.js.org/) that allows you to easily interact with the
 [Fosscord API](https://docs.fosscord.com/) and is backwards compatible to discord.js.
 
-### Fosscord.js
+### Tamcord.js
 
 - Object-oriented
 - Predictable abstractions
 - Performant
-- 100% coverage of the Fosscord API
+- 100% coverage of the Tamcord API
 
 ### Additions
 
